@@ -61,6 +61,11 @@ export default function ModaleDemandeMesse({ designation, fideleParDefaut, fidel
   const [debutJourFixe, setDebutJourFixe] = useState('');
   const [finJourFixe, setFinJourFixe] = useState('');
 
+  // Mode "dates ponctuelles" (mêmes intention, dates isolées non consécutives)
+  const [datesPonctuelles, setDatesPonctuelles] = useState([]); // [{ date, heure }]
+  const [nouvelleDatePonct, setNouvelleDatePonct] = useState('');
+  const [nouvelleHeurePonct, setNouvelleHeurePonct] = useState('');
+
   useEffect(() => {
     api.listerHoraires().then(setGrilleHoraires).catch((e) => setErreur(e.message));
   }, []);
@@ -82,6 +87,29 @@ export default function ModaleDemandeMesse({ designation, fideleParDefaut, fidel
     if (!jourFixe || !debutJourFixe || !finJourFixe || finJourFixe < debutJourFixe) return [];
     return genererDatesEntre(debutJourFixe, finJourFixe).filter((d) => jourSemaineDepuisDate(d) === jourFixe);
   }, [jourFixe, debutJourFixe, finJourFixe]);
+
+  const jourNouvellePonct = useMemo(() => jourSemaineDepuisDate(nouvelleDatePonct), [nouvelleDatePonct]);
+  const heuresNouvellePonct = jourNouvellePonct && grilleHoraires ? grilleHoraires[jourNouvellePonct] || [] : [];
+  useEffect(() => { setNouvelleHeurePonct(''); }, [nouvelleDatePonct]);
+
+  function ajouterDatePonctuelle() {
+    if (!nouvelleDatePonct || !nouvelleHeurePonct) {
+      setErreur('Choisis une date et une heure avant d\'ajouter');
+      return;
+    }
+    if (datesPonctuelles.some((d) => d.date === nouvelleDatePonct && d.heure === nouvelleHeurePonct)) {
+      setErreur('Cette date et heure sont déjà dans la liste');
+      return;
+    }
+    setErreur('');
+    setDatesPonctuelles((prev) => [...prev, { date: nouvelleDatePonct, heure: nouvelleHeurePonct }].sort((a, b) => a.date.localeCompare(b.date) || a.heure.localeCompare(b.heure)));
+    setNouvelleDatePonct('');
+    setNouvelleHeurePonct('');
+  }
+
+  function retirerDatePonctuelle(index) {
+    setDatesPonctuelles((prev) => prev.filter((_, i) => i !== index));
+  }
 
   function heurePourMoment(dispo, moment) {
     if (dispo.length === 0) return '';
@@ -149,6 +177,16 @@ export default function ModaleDemandeMesse({ designation, fideleParDefaut, fidel
       return;
     }
 
+    if (mode === 'dates-ponctuelles') {
+      if (datesPonctuelles.length === 0) {
+        setErreur('Ajoute au moins une date');
+        return;
+      }
+      const dates = datesPonctuelles.map((d) => ({ dateMesse: d.date, heureDebut: d.heure }));
+      onValider({ typeIntention, intention: intention.trim(), dates, memoriser });
+      return;
+    }
+
     if (datesPeriode.length === 0) {
       setErreur('Choisis une période valide (fin après ou égale au début)');
       return;
@@ -177,11 +215,11 @@ export default function ModaleDemandeMesse({ designation, fideleParDefaut, fidel
           )}
         </p>
 
-        <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.25rem' }}>
+        <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.25rem', flexWrap: 'wrap' }}>
           <button
             type="button"
             className={mode === 'unique' ? 'bouton bouton-primaire' : 'bouton bouton-discret'}
-            style={{ flex: 1, padding: '0.55rem' }}
+            style={{ flex: '1 1 120px', padding: '0.55rem' }}
             onClick={() => setMode('unique')}
           >
             Une messe
@@ -189,7 +227,7 @@ export default function ModaleDemandeMesse({ designation, fideleParDefaut, fidel
           <button
             type="button"
             className={mode === 'periode' ? 'bouton bouton-primaire' : 'bouton bouton-discret'}
-            style={{ flex: 1, padding: '0.55rem' }}
+            style={{ flex: '1 1 120px', padding: '0.55rem' }}
             onClick={() => setMode('periode')}
           >
             Période (neuvaine, triduum…)
@@ -197,10 +235,18 @@ export default function ModaleDemandeMesse({ designation, fideleParDefaut, fidel
           <button
             type="button"
             className={mode === 'jour-fixe' ? 'bouton bouton-primaire' : 'bouton bouton-discret'}
-            style={{ flex: 1, padding: '0.55rem' }}
+            style={{ flex: '1 1 120px', padding: '0.55rem' }}
             onClick={() => setMode('jour-fixe')}
           >
             Même jour chaque semaine
+          </button>
+          <button
+            type="button"
+            className={mode === 'dates-ponctuelles' ? 'bouton bouton-primaire' : 'bouton bouton-discret'}
+            style={{ flex: '1 1 120px', padding: '0.55rem' }}
+            onClick={() => setMode('dates-ponctuelles')}
+          >
+            Dates ponctuelles
           </button>
         </div>
 
@@ -282,6 +328,41 @@ export default function ModaleDemandeMesse({ designation, fideleParDefaut, fidel
                     {formaterDateCourte(datesJourFixe[0])} au {formaterDateCourte(datesJourFixe[datesJourFixe.length - 1])}
                   </>
                 )}
+              </div>
+            )}
+          </>
+        ) : mode === 'dates-ponctuelles' ? (
+          <>
+            <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '0.75rem', alignItems: 'flex-end' }}>
+              <div style={{ flex: 1 }}>
+                <label className="etiquette">Date</label>
+                <input type="date" className="champ" value={nouvelleDatePonct} onChange={(e) => setNouvelleDatePonct(e.target.value)} />
+              </div>
+              <div style={{ flex: 1 }}>
+                <label className="etiquette">Heure</label>
+                <select className="champ" value={nouvelleHeurePonct} onChange={(e) => setNouvelleHeurePonct(e.target.value)} disabled={!nouvelleDatePonct}>
+                  <option value="">
+                    {!nouvelleDatePonct ? "— Choisir une date d'abord —" : heuresNouvellePonct.length === 0 ? 'Aucune messe ce jour' : '— Choisir —'}
+                  </option>
+                  {heuresNouvellePonct.map((h) => <option key={h} value={h}>{h}</option>)}
+                </select>
+              </div>
+              <button type="button" className="bouton bouton-primaire" onClick={ajouterDatePonctuelle}>Ajouter</button>
+            </div>
+
+            {datesPonctuelles.length > 0 && (
+              <div style={{ border: '1px solid var(--couleur-bordure)', borderRadius: 'var(--rayon)', overflow: 'hidden' }}>
+                <div style={{ padding: '0.5rem 0.75rem', background: 'var(--couleur-fond)', fontSize: '0.8rem', color: 'var(--couleur-texte-doux)' }}>
+                  {datesPonctuelles.length} date(s) ajoutée(s) — même intention pour toutes
+                </div>
+                {datesPonctuelles.map((d, index) => (
+                  <div key={`${d.date}-${d.heure}`} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem', padding: '0.45rem 0.75rem', borderTop: '1px solid var(--couleur-bordure)' }}>
+                    <span style={{ fontSize: '0.88rem' }}>{formaterDateCourte(d.date)} à {d.heure}</span>
+                    <button type="button" className="bouton bouton-discret" style={{ padding: '0.2rem 0.6rem' }} onClick={() => retirerDatePonctuelle(index)}>
+                      Retirer
+                    </button>
+                  </div>
+                ))}
               </div>
             )}
           </>
