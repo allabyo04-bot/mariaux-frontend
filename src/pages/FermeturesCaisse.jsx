@@ -1,24 +1,37 @@
 import { useEffect, useState } from 'react';
 import EnTete from '../components/EnTete';
+import BordereauFermeture from '../components/BordereauFermeture';
 import { api } from '../lib/api';
 
 export default function FermeturesCaisse() {
   const [fermetures, setFermetures] = useState([]);
   const [erreur, setErreur] = useState('');
   const [chargement, setChargement] = useState(true);
+  const [detailOuvert, setDetailOuvert] = useState(null);
 
   useEffect(() => {
     api.listerFermetures().then(setFermetures).catch((e) => setErreur(e.message)).finally(() => setChargement(false));
   }, []);
 
+  async function gererImpression(id) {
+    setErreur('');
+    try {
+      const detail = await api.obtenirDetailFermeture(id);
+      setDetailOuvert(detail);
+      setTimeout(() => window.print(), 60);
+    } catch (e) {
+      setErreur(e.message);
+    }
+  }
+
   return (
     <div style={{ minHeight: '100vh' }}>
-      <EnTete titre="Fermetures de caisse" />
+      <div className="no-print"><EnTete titre="Fermetures de caisse" /></div>
 
       <div className="page-conteneur">
-        {erreur && <p className="message-erreur">{erreur}</p>}
+        {erreur && <p className="message-erreur no-print">{erreur}</p>}
 
-        <div className="carte" style={{ padding: '1.5rem' }}>
+        <div className="carte no-print" style={{ padding: '1.5rem' }}>
           <h2 style={{ fontSize: '1.05rem', marginBottom: '1rem' }}>Historique des fermetures</h2>
 
           {chargement ? (
@@ -36,6 +49,7 @@ export default function FermeturesCaisse() {
                     <th>Dons</th>
                     <th>Total</th>
                     <th>Fermée par</th>
+                    <th></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -53,6 +67,11 @@ export default function FermeturesCaisse() {
                         {(Number(f.totalNetAPayer) + Number(f.totalExcedent)).toLocaleString('fr-FR')} F
                       </td>
                       <td>{f.faitPar?.nom}</td>
+                      <td>
+                        <button className="bouton bouton-discret" style={{ padding: '0.25rem 0.6rem' }} onClick={() => gererImpression(f.id)}>
+                          Bordereau
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -61,6 +80,20 @@ export default function FermeturesCaisse() {
           )}
         </div>
       </div>
+
+      {detailOuvert && (
+        <div id="zone-impression-bordereau" style={{ display: 'none' }}>
+          <BordereauFermeture fermeture={detailOuvert} />
+        </div>
+      )}
+
+      <style>{`
+        @media print {
+          body * { visibility: hidden; }
+          #zone-impression-bordereau, #zone-impression-bordereau * { visibility: visible; display: block !important; }
+          #zone-impression-bordereau { position: absolute; top: 0; left: 0; }
+        }
+      `}</style>
     </div>
   );
 }

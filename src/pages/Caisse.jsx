@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import EnTete from '../components/EnTete';
 import ModaleDemandeMesse from '../components/ModaleDemandeMesse';
 import RecuFacture from '../components/RecuFacture';
+import BordereauFermeture from '../components/BordereauFermeture';
 import { api } from '../lib/api';
 
 export default function Caisse() {
@@ -27,6 +28,7 @@ export default function Caisse() {
   const [periodeOuverte, setPeriodeOuverte] = useState(null);
   const [fermetureEnCours, setFermetureEnCours] = useState(false);
   const [derniereFermetureFaite, setDerniereFermetureFaite] = useState(null);
+  const [detailFermeture, setDetailFermeture] = useState(null);
   const recuRef = useRef(null);
 
   useEffect(() => {
@@ -51,6 +53,12 @@ export default function Caisse() {
       const fermeture = await api.creerFermeture();
       setDerniereFermetureFaite(fermeture);
       chargerPeriodeOuverte();
+      try {
+        const detail = await api.obtenirDetailFermeture(fermeture.id);
+        setDetailFermeture(detail);
+      } catch (e) {
+        // le bordereau détaillé n'est pas indispensable, la fermeture est déjà faite
+      }
     } catch (e) {
       setErreur(e.message);
     } finally {
@@ -255,9 +263,14 @@ export default function Caisse() {
       <div className="page-conteneur" style={{ maxWidth: 1100 }}>
         {derniereFermetureFaite && (
           <div className="carte no-print" style={{ padding: '1.5rem', marginBottom: '1.5rem', borderColor: 'var(--couleur-succes)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
               <h2 style={{ fontSize: '1.05rem', color: 'var(--couleur-succes)' }}>Caisse fermée</h2>
-              <button className="bouton bouton-discret" onClick={() => setDerniereFermetureFaite(null)}>Fermer</button>
+              <div style={{ display: 'flex', gap: '0.6rem' }}>
+                {detailFermeture && (
+                  <button className="bouton bouton-accent" onClick={() => window.print()}>Imprimer le bordereau</button>
+                )}
+                <button className="bouton bouton-discret" onClick={() => { setDerniereFermetureFaite(null); setDetailFermeture(null); }}>Fermer</button>
+              </div>
             </div>
             <p style={{ fontSize: '0.9rem', color: 'var(--couleur-texte-doux)', marginTop: '0.5rem' }}>
               {derniereFermetureFaite.nombreFactures} facture(s) — Net à payer : {Number(derniereFermetureFaite.totalNetAPayer).toLocaleString('fr-FR')} F
@@ -486,6 +499,12 @@ export default function Caisse() {
         </div>
       )}
 
+      {detailFermeture && (
+        <div id="zone-impression-bordereau" style={{ display: 'none' }}>
+          <BordereauFermeture fermeture={detailFermeture} />
+        </div>
+      )}
+
       <style>{`
         .caisse-grille {
           display: flex;
@@ -501,8 +520,9 @@ export default function Caisse() {
         }
         @media print {
           body * { visibility: hidden; }
-          #zone-impression-recu, #zone-impression-recu * { visibility: visible; display: block !important; }
-          #zone-impression-recu { position: absolute; top: 0; left: 0; }
+          #zone-impression-recu, #zone-impression-recu *,
+          #zone-impression-bordereau, #zone-impression-bordereau * { visibility: visible; display: block !important; }
+          #zone-impression-recu, #zone-impression-bordereau { position: absolute; top: 0; left: 0; }
         }
       `}</style>
 

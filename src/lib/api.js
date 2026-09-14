@@ -71,6 +71,7 @@ export const api = {
   obtenirPeriodeOuverte: () => requete('/api/fermetures/periode-ouverte'),
   creerFermeture: () => requete('/api/fermetures', { method: 'POST' }),
   listerFermetures: () => requete('/api/fermetures'),
+  obtenirDetailFermeture: (id) => requete(`/api/fermetures/${id}/detail`),
 
   recettesDuJour: () => requete('/api/dashboard/recettes-jour'),
   etatRecettes: (params) => {
