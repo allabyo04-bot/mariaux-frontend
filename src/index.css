@@ -1,0 +1,210 @@
+:root {
+  --couleur-fond: #eef2f8;
+  --couleur-surface: #ffffff;
+  --couleur-primaire: #1b3a66;
+  --couleur-primaire-clair: #2c4f82;
+  --couleur-accent: #a8791f;
+  --couleur-accent-clair: #c99a3a;
+  --couleur-texte: #1f2733;
+  --couleur-texte-doux: #59677d;
+  --couleur-bordure: #d7e0ec;
+  --couleur-succes: #3f7d5c;
+  --couleur-danger: #b0413e;
+
+  --police-titre: 'Source Serif 4', Georgia, serif;
+  --police-corps: 'Inter', system-ui, sans-serif;
+
+  --rayon: 8px;
+  --ombre: 0 2px 10px rgba(27, 58, 102, 0.1);
+}
+
+* { box-sizing: border-box; }
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family: var(--police-corps);
+  background: var(--couleur-fond);
+  color: var(--couleur-texte);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3 {
+  font-family: var(--police-titre);
+  color: var(--couleur-primaire);
+  margin: 0;
+}
+
+button {
+  font-family: var(--police-corps);
+  cursor: pointer;
+}
+
+input, select {
+  font-family: var(--police-corps);
+}
+
+:focus-visible {
+  outline: 2px solid var(--couleur-accent);
+  outline-offset: 2px;
+}
+
+.bouton {
+  border: none;
+  border-radius: var(--rayon);
+  padding: 0.7rem 1.3rem;
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: transform 0.05s ease, background 0.15s ease;
+}
+.bouton:active { transform: scale(0.98); }
+
+.bouton-primaire {
+  background: var(--couleur-primaire);
+  color: #fff;
+}
+.bouton-primaire:hover { background: var(--couleur-primaire-clair); }
+
+.bouton-accent {
+  background: var(--couleur-accent);
+  color: #fff;
+}
+.bouton-accent:hover { background: var(--couleur-accent-clair); }
+
+.bouton-discret {
+  background: transparent;
+  color: var(--couleur-texte-doux);
+  border: 1px solid var(--couleur-bordure);
+}
+.bouton-discret:hover { background: var(--couleur-surface); }
+
+.carte {
+  background: var(--couleur-surface);
+  border-radius: var(--rayon);
+  box-shadow: var(--ombre);
+  border: 1px solid var(--couleur-bordure);
+}
+
+.champ {
+  width: 100%;
+  padding: 0.65rem 0.8rem;
+  border: 1px solid var(--couleur-bordure);
+  border-radius: var(--rayon);
+  font-size: 0.95rem;
+  background: #fff;
+  color: var(--couleur-texte);
+}
+
+.etiquette {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--couleur-texte-doux);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.35rem;
+  display: block;
+}
+
+.message-erreur {
+  color: var(--couleur-danger);
+  font-size: 0.9rem;
+  margin-top: 0.5rem;
+}
+
+/* ---- Mise en page responsive ---- */
+
+.page-conteneur {
+  max-width: 900px;
+  margin: 2rem auto;
+  padding: 0 1.5rem;
+}
+
+.grille-cartes {
+  display: flex;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+}
+.grille-cartes > * {
+  flex: 1 1 220px;
+}
+
+.tableau-scroll {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.tableau-scroll table {
+  min-width: 480px;
+}
+
+.en-tete {
+  background: var(--couleur-primaire);
+  color: #fff;
+  padding: 0.9rem 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.en-tete-liens {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 640px) {
+  .page-conteneur {
+    margin: 1rem auto;
+    padding: 0 1rem;
+  }
+
+  .en-tete {
+    padding: 0.75rem 1rem;
+  }
+
+  .en-tete-liens .bouton {
+    padding: 0.45rem 0.7rem;
+    font-size: 0.85rem;
+  }
+
+  .en-tete-role {
+    display: none;
+  }
+
+  h1 { font-size: 1.2rem !important; }
+
+  table {
+    font-size: 0.82rem;
+  }
+}
+
+/* Contraste renforcé à l'impression du reçu (texte gris trop clair sur imprimante) */
+@media print {
+  @page {
+    margin: 0;
+  }
+
+  #ticket-impression, #ticket-impression * {
+    color: #000 !important;
+    font-weight: 600 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  #ticket-impression {
+    font-size: 1rem !important;
+    width: 280px !important;
+    max-width: 280px !important;
+    margin: 0 !important;
+    padding: 0.6rem 0.4rem !important;
+    box-sizing: border-box !important;
+  }
+  #ticket-impression table, #ticket-impression td, #ticket-impression th {
+    border-color: #000 !important;
+  }
+}
