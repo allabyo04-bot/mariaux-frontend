@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import EnTete from '../components/EnTete';
+import { useAuth } from '../context/AuthContext';
 import { api } from '../lib/api';
 
 const CATEGORIES_ORDRE = [
@@ -27,6 +28,7 @@ function formaterDateLongue(chaineDate) {
 }
 
 export default function ListingMesses() {
+  const { utilisateur } = useAuth();
   const [date, setDate] = useState(aujourdHui());
   const [heure, setHeure] = useState('');
   const [grilleHoraires, setGrilleHoraires] = useState(null);
@@ -36,6 +38,9 @@ export default function ListingMesses() {
   const [correctionId, setCorrectionId] = useState(null);
   const [correctionDate, setCorrectionDate] = useState('');
   const [correctionHeure, setCorrectionHeure] = useState('');
+  const [correctionIntentionId, setCorrectionIntentionId] = useState(null);
+  const [nouvelleIntentionTexte, setNouvelleIntentionTexte] = useState('');
+  const [motifCorrection, setMotifCorrection] = useState('');
 
   useEffect(() => {
     api.listerHoraires().then(setGrilleHoraires).catch((e) => setErreur(e.message));
@@ -89,6 +94,39 @@ export default function ListingMesses() {
 
   function annulerCorrection() {
     setCorrectionId(null);
+  }
+
+  function ouvrirCorrectionIntention(m) {
+    setCorrectionIntentionId(m.id);
+    setNouvelleIntentionTexte(m.intention);
+    setMotifCorrection('');
+    setErreur('');
+  }
+
+  function annulerCorrectionIntention() {
+    setCorrectionIntentionId(null);
+  }
+
+  async function validerCorrectionIntention() {
+    if (!nouvelleIntentionTexte.trim()) {
+      setErreur("La nouvelle intention ne peut pas être vide");
+      return;
+    }
+    if (!motifCorrection.trim()) {
+      setErreur('Le motif de la correction est requis');
+      return;
+    }
+    setErreur('');
+    try {
+      await api.corrigerIntention(correctionIntentionId, {
+        nouvelleIntention: nouvelleIntentionTexte.trim(),
+        motif: motifCorrection.trim(),
+      });
+      setCorrectionIntentionId(null);
+      charger(date, heure);
+    } catch (e) {
+      setErreur(e.message);
+    }
   }
 
   async function validerCorrection() {
@@ -206,14 +244,54 @@ export default function ListingMesses() {
                   >
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.6rem' }}>
                       <span>{m.intention}</span>
-                      <button
-                        className="bouton bouton-discret no-print"
-                        style={{ padding: '0.15rem 0.5rem', fontSize: '0.75rem', flexShrink: 0 }}
-                        onClick={() => ouvrirCorrection(m)}
-                      >
-                        Corriger
-                      </button>
+                      <div className="no-print" style={{ display: 'flex', gap: '0.4rem', flexShrink: 0 }}>
+                        <button
+                          className="bouton bouton-discret"
+                          style={{ padding: '0.15rem 0.5rem', fontSize: '0.75rem' }}
+                          onClick={() => ouvrirCorrectionIntention(m)}
+                          disabled={utilisateur?.role === 'CAISSE' && m.nombreCorrections >= 1}
+                          title={utilisateur?.role === 'CAISSE' && m.nombreCorrections >= 1 ? "Déjà corrigée une fois — demande au Curé" : ''}
+                        >
+                          Corriger l'intention
+                        </button>
+                        <button
+                          className="bouton bouton-discret"
+                          style={{ padding: '0.15rem 0.5rem', fontSize: '0.75rem' }}
+                          onClick={() => ouvrirCorrection(m)}
+                        >
+                          Corriger
+                        </button>
+                      </div>
                     </div>
+
+                    {correctionIntentionId === m.id && (
+                      <div className="no-print" style={{ marginTop: '0.6rem', padding: '0.6rem', background: 'var(--couleur-fond)', borderRadius: '4px' }}>
+                        <label className="etiquette" style={{ fontSize: '0.7rem' }}>Nouvelle intention</label>
+                        <textarea
+                          className="champ"
+                          rows={3}
+                          style={{ fontSize: '0.85rem', marginBottom: '0.5rem' }}
+                          value={nouvelleIntentionTexte}
+                          onChange={(e) => setNouvelleIntentionTexte(e.target.value)}
+                        />
+                        <label className="etiquette" style={{ fontSize: '0.7rem' }}>Motif de la correction</label>
+                        <input
+                          className="champ"
+                          style={{ fontSize: '0.85rem', marginBottom: '0.6rem' }}
+                          value={motifCorrection}
+                          onChange={(e) => setMotifCorrection(e.target.value)}
+                          placeholder="Ex : faute de frappe sur le nom"
+                        />
+                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                          <button className="bouton bouton-accent" style={{ padding: '0.35rem 0.7rem', fontSize: '0.8rem' }} onClick={validerCorrectionIntention}>
+                            Valider
+                          </button>
+                          <button className="bouton bouton-discret" style={{ padding: '0.35rem 0.7rem', fontSize: '0.8rem' }} onClick={annulerCorrectionIntention}>
+                            Annuler
+                          </button>
+                        </div>
+                      </div>
+                    )}
 
                     {correctionId === m.id && (
                       <div className="no-print" style={{ marginTop: '0.6rem', padding: '0.6rem', background: 'var(--couleur-fond)', borderRadius: '4px', display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'flex-end' }}>
