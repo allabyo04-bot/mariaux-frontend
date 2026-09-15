@@ -259,7 +259,7 @@ export default function ListingMesses() {
                           style={{ padding: '0.15rem 0.5rem', fontSize: '0.75rem' }}
                           onClick={() => ouvrirCorrection(m)}
                         >
-                          Corriger
+                          Corriger date/heure
                         </button>
                       </div>
                     </div>
