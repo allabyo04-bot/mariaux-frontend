@@ -146,7 +146,7 @@ export default function HistoriqueFactures() {
                   {resultats.map((f) => (
                     <tr key={f.id} style={{ borderTop: '1px solid var(--couleur-bordure)' }}>
                       <td style={{ padding: '0.5rem 0' }}>{f.numero}</td>
-                      <td>{new Date(f.date).toLocaleDateString('fr-FR')}</td>
+                      <td>{new Date(f.date).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</td>
                       <td>{f.fidele}</td>
                       <td>{Number(f.netAPayer).toLocaleString('fr-FR')} F</td>
                       <td>
