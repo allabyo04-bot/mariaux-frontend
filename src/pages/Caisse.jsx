@@ -3,9 +3,11 @@ import EnTete from '../components/EnTete';
 import ModaleDemandeMesse from '../components/ModaleDemandeMesse';
 import RecuFacture from '../components/RecuFacture';
 import BordereauFermeture from '../components/BordereauFermeture';
+import { useAuth } from '../context/AuthContext';
 import { api } from '../lib/api';
 
 export default function Caisse() {
+  const { utilisateur } = useAuth();
   const [designations, setDesignations] = useState([]);
   const [designationChoisieId, setDesignationChoisieId] = useState('');
   const [quantite, setQuantite] = useState(1);
@@ -25,50 +27,37 @@ export default function Caisse() {
   const [afficherHistorique, setAfficherHistorique] = useState(false);
   const [facturesJour, setFacturesJour] = useState([]);
   const [chargementHistorique, setChargementHistorique] = useState(false);
-  const [periodeOuverte, setPeriodeOuverte] = useState(null);
   const [recapJour, setRecapJour] = useState(null);
-  const [fermetureEnCours, setFermetureEnCours] = useState(false);
-  const [derniereFermetureFaite, setDerniereFermetureFaite] = useState(null);
-  const [detailFermeture, setDetailFermeture] = useState(null);
+  const [recapAImprimer, setRecapAImprimer] = useState(null);
   const recuRef = useRef(null);
 
   useEffect(() => {
     api.listerDesignations().then(setDesignations).catch((e) => setErreur(e.message));
-    chargerPeriodeOuverte();
     chargerRecapJour();
   }, []);
-
-  function chargerPeriodeOuverte() {
-    api.obtenirPeriodeOuverte().then(setPeriodeOuverte).catch(() => {});
-  }
 
   function chargerRecapJour() {
     api.recettesDuJour().then(setRecapJour).catch(() => {});
   }
 
-  async function gererFermeture() {
-    if (!periodeOuverte || periodeOuverte.nombreFactures === 0) return;
-    const confirme = window.confirm(
-      `Fermer la caisse ? ${periodeOuverte.nombreFactures} facture(s) pour un total de ${periodeOuverte.total.toLocaleString('fr-FR')} F seront verrouillées. Cette action est définitive.`
-    );
-    if (!confirme) return;
-
-    setFermetureEnCours(true);
+  async function gererImpressionRecapJour() {
     setErreur('');
     try {
-      const fermeture = await api.creerFermeture();
-      setDerniereFermetureFaite(fermeture);
-      chargerPeriodeOuverte();
-      try {
-        const detail = await api.obtenirDetailFermeture(fermeture.id);
-        setDetailFermeture(detail);
-      } catch (e) {
-        // le bordereau détaillé n'est pas indispensable, la fermeture est déjà faite
-      }
+      const factures = await api.listerFactures();
+      const debut = new Date();
+      debut.setHours(0, 0, 0, 0);
+      setRecapAImprimer({
+        dateDebut: debut.toISOString(),
+        dateFin: new Date().toISOString(),
+        nombreFactures: factures.length,
+        totalNetAPayer: recapJour?.totalJour || 0,
+        totalExcedent: 0,
+        recapRubriques: recapJour?.parRubrique || [],
+        faitPar: { nom: utilisateur?.nom },
+      });
+      setTimeout(() => window.print(), 60);
     } catch (e) {
       setErreur(e.message);
-    } finally {
-      setFermetureEnCours(false);
     }
   }
 
@@ -251,7 +240,6 @@ export default function Caisse() {
       setFideleSelectionne(null);
       setMontantRecu('');
       setMontantRecuTouche(false);
-      chargerPeriodeOuverte();
       chargerRecapJour();
       // Descend automatiquement jusqu'au reçu — sur une longue facture (neuvaine, etc.)
       // il se trouve loin en dessous du bouton et pouvait sembler "introuvable".
@@ -268,32 +256,20 @@ export default function Caisse() {
       <EnTete titre="Caisse" />
 
       <div className="page-conteneur" style={{ maxWidth: 1100 }}>
-        {derniereFermetureFaite && (
-          <div className="carte no-print" style={{ padding: '1.5rem', marginBottom: '1.5rem', borderColor: 'var(--couleur-succes)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
-              <h2 style={{ fontSize: '1.05rem', color: 'var(--couleur-succes)' }}>Caisse fermée</h2>
-              <div style={{ display: 'flex', gap: '0.6rem' }}>
-                {detailFermeture && (
-                  <button className="bouton bouton-accent" onClick={() => window.print()}>Imprimer le bordereau</button>
-                )}
-                <button className="bouton bouton-discret" onClick={() => { setDerniereFermetureFaite(null); setDetailFermeture(null); }}>Fermer</button>
-              </div>
-            </div>
-            <p style={{ fontSize: '0.9rem', color: 'var(--couleur-texte-doux)', marginTop: '0.5rem' }}>
-              {derniereFermetureFaite.nombreFactures} facture(s) — Net à payer : {Number(derniereFermetureFaite.totalNetAPayer).toLocaleString('fr-FR')} F
-              {Number(derniereFermetureFaite.totalExcedent) > 0 && ` — Dons complémentaires : ${Number(derniereFermetureFaite.totalExcedent).toLocaleString('fr-FR')} F`}
-              {' — Total : '}{(Number(derniereFermetureFaite.totalNetAPayer) + Number(derniereFermetureFaite.totalExcedent)).toLocaleString('fr-FR')} F
-            </p>
-          </div>
-        )}
-
         {!dernierRecu && recapJour && (
           <div className="carte no-print" style={{ padding: '1.5rem', marginBottom: '1.5rem' }}>
-            <h2 style={{ fontSize: '1rem', marginBottom: '0.3rem' }}>Récap du jour</h2>
-            <p style={{ fontSize: '0.78rem', color: 'var(--couleur-texte-doux)', marginBottom: '0.75rem' }}>
-              Depuis minuit aujourd'hui — indépendant des fermetures de caisse
-            </p>
-            <div style={{ fontFamily: 'var(--police-titre)', fontSize: '1.6rem', color: 'var(--couleur-primaire)', marginBottom: recapJour.parRubrique?.length ? '0.75rem' : 0 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.75rem' }}>
+              <div>
+                <h2 style={{ fontSize: '1rem', marginBottom: '0.3rem' }}>Récap du jour</h2>
+                <p style={{ fontSize: '0.78rem', color: 'var(--couleur-texte-doux)' }}>
+                  Depuis minuit aujourd'hui
+                </p>
+              </div>
+              <button className="bouton bouton-accent" onClick={gererImpressionRecapJour} disabled={!recapJour.totalJour}>
+                Imprimer
+              </button>
+            </div>
+            <div style={{ fontFamily: 'var(--police-titre)', fontSize: '1.6rem', color: 'var(--couleur-primaire)', marginTop: '0.75rem', marginBottom: recapJour.parRubrique?.length ? '0.75rem' : 0 }}>
               {recapJour.totalJour.toLocaleString('fr-FR')} F
             </div>
             {recapJour.parRubrique?.length > 0 && (
@@ -306,26 +282,6 @@ export default function Caisse() {
                 ))}
               </div>
             )}
-          </div>
-        )}
-
-        {!dernierRecu && periodeOuverte && (
-          <div className="carte no-print" style={{ padding: '1.5rem', marginBottom: '1.5rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
-              <div>
-                <h2 style={{ fontSize: '1rem', marginBottom: '0.3rem' }}>Fermeture de caisse</h2>
-                <p style={{ fontSize: '0.85rem', color: 'var(--couleur-texte-doux)' }}>
-                  Depuis la dernière fermeture : {periodeOuverte.nombreFactures} facture(s), {periodeOuverte.total.toLocaleString('fr-FR')} F
-                </p>
-              </div>
-              <button
-                className="bouton bouton-accent"
-                onClick={gererFermeture}
-                disabled={fermetureEnCours || periodeOuverte.nombreFactures === 0}
-              >
-                {fermetureEnCours ? 'Fermeture…' : 'Fermer la caisse'}
-              </button>
-            </div>
           </div>
         )}
 
@@ -408,7 +364,7 @@ export default function Caisse() {
 
             <div className="carte no-print" style={{ padding: '1.5rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h2 style={{ fontSize: '1rem' }}>Mes factures de la période</h2>
+                <h2 style={{ fontSize: '1rem' }}>Mes factures du jour</h2>
                 <button className="bouton bouton-discret" onClick={gererOuvrirHistorique}>
                   {afficherHistorique ? 'Masquer' : 'Afficher'}
                 </button>
@@ -418,7 +374,7 @@ export default function Caisse() {
                 <div style={{ marginTop: '1rem' }}>
                   {chargementHistorique && <p style={{ fontSize: '0.9rem', color: 'var(--couleur-texte-doux)' }}>Chargement…</p>}
                   {!chargementHistorique && facturesJour.length === 0 && (
-                    <p style={{ fontSize: '0.9rem', color: 'var(--couleur-texte-doux)' }}>Aucune facture depuis la dernière fermeture.</p>
+                    <p style={{ fontSize: '0.9rem', color: 'var(--couleur-texte-doux)' }}>Aucune facture aujourd'hui.</p>
                   )}
                   {!chargementHistorique && facturesJour.length > 0 && (
                     <>
@@ -560,9 +516,9 @@ export default function Caisse() {
         </div>
       )}
 
-      {detailFermeture && (
+      {recapAImprimer && (
         <div id="zone-impression-bordereau" style={{ display: 'none' }}>
-          <BordereauFermeture fermeture={detailFermeture} />
+          <BordereauFermeture fermeture={recapAImprimer} />
         </div>
       )}
 
