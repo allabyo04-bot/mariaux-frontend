@@ -26,6 +26,7 @@ export default function Caisse() {
   const [facturesJour, setFacturesJour] = useState([]);
   const [chargementHistorique, setChargementHistorique] = useState(false);
   const [periodeOuverte, setPeriodeOuverte] = useState(null);
+  const [recapJour, setRecapJour] = useState(null);
   const [fermetureEnCours, setFermetureEnCours] = useState(false);
   const [derniereFermetureFaite, setDerniereFermetureFaite] = useState(null);
   const [detailFermeture, setDetailFermeture] = useState(null);
@@ -34,10 +35,15 @@ export default function Caisse() {
   useEffect(() => {
     api.listerDesignations().then(setDesignations).catch((e) => setErreur(e.message));
     chargerPeriodeOuverte();
+    chargerRecapJour();
   }, []);
 
   function chargerPeriodeOuverte() {
     api.obtenirPeriodeOuverte().then(setPeriodeOuverte).catch(() => {});
+  }
+
+  function chargerRecapJour() {
+    api.recettesDuJour().then(setRecapJour).catch(() => {});
   }
 
   async function gererFermeture() {
@@ -246,6 +252,7 @@ export default function Caisse() {
       setMontantRecu('');
       setMontantRecuTouche(false);
       chargerPeriodeOuverte();
+      chargerRecapJour();
       // Descend automatiquement jusqu'au reçu — sur une longue facture (neuvaine, etc.)
       // il se trouve loin en dessous du bouton et pouvait sembler "introuvable".
       setTimeout(() => recuRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60);
@@ -277,6 +284,28 @@ export default function Caisse() {
               {Number(derniereFermetureFaite.totalExcedent) > 0 && ` — Dons complémentaires : ${Number(derniereFermetureFaite.totalExcedent).toLocaleString('fr-FR')} F`}
               {' — Total : '}{(Number(derniereFermetureFaite.totalNetAPayer) + Number(derniereFermetureFaite.totalExcedent)).toLocaleString('fr-FR')} F
             </p>
+          </div>
+        )}
+
+        {!dernierRecu && recapJour && (
+          <div className="carte no-print" style={{ padding: '1.5rem', marginBottom: '1.5rem' }}>
+            <h2 style={{ fontSize: '1rem', marginBottom: '0.3rem' }}>Récap du jour</h2>
+            <p style={{ fontSize: '0.78rem', color: 'var(--couleur-texte-doux)', marginBottom: '0.75rem' }}>
+              Depuis minuit aujourd'hui — indépendant des fermetures de caisse
+            </p>
+            <div style={{ fontFamily: 'var(--police-titre)', fontSize: '1.6rem', color: 'var(--couleur-primaire)', marginBottom: recapJour.parRubrique?.length ? '0.75rem' : 0 }}>
+              {recapJour.totalJour.toLocaleString('fr-FR')} F
+            </div>
+            {recapJour.parRubrique?.length > 0 && (
+              <div>
+                {recapJour.parRubrique.map((r) => (
+                  <div key={r.rubrique} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', padding: '0.3rem 0', borderTop: '1px solid var(--couleur-bordure)' }}>
+                    <span>{r.rubrique}</span>
+                    <span style={{ fontWeight: 600 }}>{r.montant.toLocaleString('fr-FR')} F</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
