@@ -379,7 +379,7 @@ export default function Caisse() {
 
             <div className="carte no-print" style={{ padding: '1.5rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h2 style={{ fontSize: '1rem' }}>Réimprimer un reçu (période en cours)</h2>
+                <h2 style={{ fontSize: '1rem' }}>Mes factures de la période</h2>
                 <button className="bouton bouton-discret" onClick={gererOuvrirHistorique}>
                   {afficherHistorique ? 'Masquer' : 'Afficher'}
                 </button>
@@ -391,20 +391,52 @@ export default function Caisse() {
                   {!chargementHistorique && facturesJour.length === 0 && (
                     <p style={{ fontSize: '0.9rem', color: 'var(--couleur-texte-doux)' }}>Aucune facture depuis la dernière fermeture.</p>
                   )}
-                  {facturesJour.map((f) => (
-                    <div
-                      key={f.id}
-                      onClick={() => gererReimpression(f.id)}
-                      style={{
-                        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                        padding: '0.65rem 0.4rem', borderTop: '1px solid var(--couleur-bordure)',
-                        cursor: 'pointer', fontSize: '0.9rem',
-                      }}
-                    >
-                      <span>N° {f.numero} — {f.fidele}</span>
-                      <span style={{ color: 'var(--couleur-texte-doux)' }}>{Number(f.netAPayer).toLocaleString('fr-FR')} F</span>
-                    </div>
-                  ))}
+                  {!chargementHistorique && facturesJour.length > 0 && (
+                    <>
+                      <p style={{ fontSize: '0.82rem', color: 'var(--couleur-texte-doux)', marginBottom: '0.5rem' }}>
+                        {facturesJour.length} facture(s) — clique sur une ligne pour la revoir/imprimer
+                      </p>
+                      <div className="tableau-scroll" style={{ maxHeight: 420, overflowY: 'auto' }}>
+                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+                          <thead>
+                            <tr style={{ textAlign: 'left', color: 'var(--couleur-texte-doux)', fontSize: '0.72rem', position: 'sticky', top: 0, background: 'var(--couleur-surface)' }}>
+                              <th style={{ padding: '0.3rem 0.3rem 0.3rem 0' }}>Heure</th>
+                              <th>N°</th>
+                              <th>Fidèle</th>
+                              <th style={{ textAlign: 'right' }}>Net à payer</th>
+                              <th style={{ textAlign: 'right' }}>Reçu</th>
+                              <th style={{ textAlign: 'right' }}>Excédent</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {facturesJour.map((f) => {
+                              const net = Number(f.netAPayer);
+                              const recu = f.montantRecu !== null && f.montantRecu !== undefined ? Number(f.montantRecu) : null;
+                              const excedent = recu !== null && recu > net ? recu - net : 0;
+                              return (
+                                <tr
+                                  key={f.id}
+                                  onClick={() => gererReimpression(f.id)}
+                                  style={{ borderTop: '1px solid var(--couleur-bordure)', cursor: 'pointer' }}
+                                >
+                                  <td style={{ padding: '0.5rem 0.3rem 0.5rem 0', whiteSpace: 'nowrap' }}>
+                                    {new Date(f.date).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                                  </td>
+                                  <td style={{ whiteSpace: 'nowrap' }}>{f.numero}</td>
+                                  <td>{f.fidele}</td>
+                                  <td style={{ textAlign: 'right' }}>{net.toLocaleString('fr-FR')} F</td>
+                                  <td style={{ textAlign: 'right' }}>{recu !== null ? `${recu.toLocaleString('fr-FR')} F` : '—'}</td>
+                                  <td style={{ textAlign: 'right', fontWeight: excedent > 0 ? 700 : 400, color: excedent > 0 ? 'var(--couleur-accent)' : 'inherit' }}>
+                                    {excedent > 0 ? `${excedent.toLocaleString('fr-FR')} F` : '—'}
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    </>
+                  )}
                 </div>
               )}
             </div>
