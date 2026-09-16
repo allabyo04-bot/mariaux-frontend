@@ -56,6 +56,8 @@ export default function HistoriqueFactures() {
     }
   }
 
+  const totalNetAPayer = resultats.reduce((s, f) => s + Number(f.netAPayer), 0);
+
   return (
     <div style={{ minHeight: '100vh' }}>
       <div className="no-print"><EnTete titre="Historique des factures" /></div>
@@ -90,6 +92,23 @@ export default function HistoriqueFactures() {
         </div>
 
         {erreur && <p className="message-erreur no-print">{erreur}</p>}
+
+        {resultats.length > 0 && (
+          <div
+            className="carte no-print"
+            style={{
+              padding: '1.25rem 1.5rem', marginBottom: '1.5rem', textAlign: 'center',
+              background: 'var(--couleur-primaire)', borderColor: 'var(--couleur-primaire)',
+            }}
+          >
+            <div style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.8)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              Total sur la sélection — {resultats.length} facture{resultats.length > 1 ? 's' : ''}
+            </div>
+            <div style={{ fontFamily: 'var(--police-titre)', fontSize: '2rem', color: '#fff', marginTop: '0.2rem' }}>
+              {totalNetAPayer.toLocaleString('fr-FR')} F
+            </div>
+          </div>
+        )}
 
         {factureOuverte && (
           <div className="carte no-print" style={{ padding: '1.75rem', marginBottom: '1.5rem' }}>
