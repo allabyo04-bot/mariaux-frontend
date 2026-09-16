@@ -14,13 +14,12 @@ export default function HistoriqueFactures() {
   const [erreur, setErreur] = useState('');
   const [factureOuverte, setFactureOuverte] = useState(null);
 
-  async function gererRecherche(e) {
-    e?.preventDefault();
+  async function rechercherAvec(db, df) {
     setErreur('');
     setChargement(true);
     try {
       const params = {};
-      if (debut && fin) { params.debut = debut; params.fin = fin; }
+      if (db && df) { params.debut = db; params.fin = df; }
       if (numero.trim()) params.numero = numero.trim();
       if (fidele.trim()) params.fidele = fidele.trim();
       const donnees = await api.listerFactures(params);
@@ -30,6 +29,38 @@ export default function HistoriqueFactures() {
     } finally {
       setChargement(false);
     }
+  }
+
+  function gererRecherche(e) {
+    e?.preventDefault();
+    rechercherAvec(debut, fin);
+  }
+
+  function formaterDateISO(d) {
+    return d.toISOString().slice(0, 10);
+  }
+
+  function selectionnerAujourdhui() {
+    const aujourdhui = formaterDateISO(new Date());
+    setDebut(aujourdhui);
+    setFin(aujourdhui);
+    rechercherAvec(aujourdhui, aujourdhui);
+  }
+
+  function selectionnerSemaineEnCours() {
+    const maintenant = new Date();
+    const jourSemaine = maintenant.getDay(); // 0 = dimanche
+    const decalageLundi = jourSemaine === 0 ? -6 : 1 - jourSemaine;
+    const lundi = new Date(maintenant);
+    lundi.setDate(maintenant.getDate() + decalageLundi);
+    const dimanche = new Date(lundi);
+    dimanche.setDate(lundi.getDate() + 6);
+
+    const db = formaterDateISO(lundi);
+    const df = formaterDateISO(dimanche);
+    setDebut(db);
+    setFin(df);
+    rechercherAvec(db, df);
   }
 
   async function gererOuverture(id) {
@@ -65,6 +96,16 @@ export default function HistoriqueFactures() {
       <div className="page-conteneur">
         <div className="carte no-print" style={{ padding: '1.5rem', marginBottom: '1.5rem' }}>
           <h2 style={{ fontSize: '1.05rem', marginBottom: '1rem' }}>Rechercher une facture</h2>
+
+          <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
+            <button type="button" className="bouton bouton-discret" onClick={selectionnerAujourdhui}>
+              Aujourd'hui
+            </button>
+            <button type="button" className="bouton bouton-discret" onClick={selectionnerSemaineEnCours}>
+              Semaine en cours
+            </button>
+          </div>
+
           <form onSubmit={gererRecherche} style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap', alignItems: 'flex-end' }}>
             <div style={{ flex: '1 1 140px' }}>
               <label className="etiquette">Du</label>
