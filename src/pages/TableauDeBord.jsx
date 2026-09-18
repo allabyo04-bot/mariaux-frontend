@@ -27,6 +27,12 @@ export default function TableauDeBord() {
                 </div>
               </div>
               <div className="carte" style={{ padding: '1.5rem' }}>
+                <span className="etiquette">Cumul de la semaine</span>
+                <div style={{ fontFamily: 'var(--police-titre)', fontSize: '2rem', color: 'var(--couleur-primaire)' }}>
+                  {donnees.cumulSemaine.toLocaleString('fr-FR')} F
+                </div>
+              </div>
+              <div className="carte" style={{ padding: '1.5rem' }}>
                 <span className="etiquette">Cumul du mois</span>
                 <div style={{ fontFamily: 'var(--police-titre)', fontSize: '2rem', color: 'var(--couleur-accent)' }}>
                   {donnees.cumulMois.toLocaleString('fr-FR')} F

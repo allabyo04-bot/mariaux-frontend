@@ -45,6 +45,33 @@ export default function EtatRecettes() {
     }
   }
 
+  async function selectionnerSemaineEnCours() {
+    const maintenant = new Date();
+    const jourSemaine = maintenant.getDay(); // 0 = dimanche
+    const decalageLundi = jourSemaine === 0 ? -6 : 1 - jourSemaine;
+    const lundi = new Date(maintenant);
+    lundi.setDate(maintenant.getDate() + decalageLundi);
+    const samedi = new Date(lundi);
+    samedi.setDate(lundi.getDate() + 5);
+
+    const db = lundi.toISOString().slice(0, 10);
+    const df = samedi.toISOString().slice(0, 10);
+    setDebut(db);
+    setFin(df);
+    setGranularite('jour');
+
+    setErreur('');
+    setChargement(true);
+    try {
+      const d = await api.etatRecettes({ debut: db, fin: df, granularite: 'jour' });
+      setDonnees(d);
+    } catch (e) {
+      setErreur(e.message);
+    } finally {
+      setChargement(false);
+    }
+  }
+
   async function gererExportCsv() {
     setErreur('');
     setExportEnCours(true);
@@ -64,6 +91,13 @@ export default function EtatRecettes() {
       <div className="page-conteneur">
         <div className="carte no-print" style={{ padding: '1.5rem', marginBottom: '1.5rem' }}>
           <h2 style={{ fontSize: '1.05rem', marginBottom: '1rem' }}>Regrouper les recettes</h2>
+
+          <div style={{ marginBottom: '1rem' }}>
+            <button type="button" className="bouton bouton-discret" onClick={selectionnerSemaineEnCours}>
+              Semaine en cours (lun-sam)
+            </button>
+          </div>
+
           <form onSubmit={gererRecherche} style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap', alignItems: 'flex-end' }}>
             <div style={{ flex: '1 1 140px' }}>
               <label className="etiquette">Du</label>
