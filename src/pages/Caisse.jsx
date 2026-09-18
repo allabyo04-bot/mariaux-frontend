@@ -28,16 +28,22 @@ export default function Caisse() {
   const [facturesJour, setFacturesJour] = useState([]);
   const [chargementHistorique, setChargementHistorique] = useState(false);
   const [recapJour, setRecapJour] = useState(null);
+  const [recapSemaine, setRecapSemaine] = useState(null);
   const [recapAImprimer, setRecapAImprimer] = useState(null);
   const recuRef = useRef(null);
 
   useEffect(() => {
     api.listerDesignations().then(setDesignations).catch((e) => setErreur(e.message));
     chargerRecapJour();
+    chargerRecapSemaine();
   }, []);
 
   function chargerRecapJour() {
     api.recettesDuJour().then(setRecapJour).catch(() => {});
+  }
+
+  function chargerRecapSemaine() {
+    api.recettesSemaine().then(setRecapSemaine).catch(() => {});
   }
 
   async function gererImpressionRecapJour() {
@@ -59,6 +65,21 @@ export default function Caisse() {
     } catch (e) {
       setErreur(e.message);
     }
+  }
+
+  function gererImpressionRecapSemaine() {
+    if (!recapSemaine) return;
+    setErreur('');
+    setRecapAImprimer({
+      dateDebut: recapSemaine.dateDebut,
+      dateFin: recapSemaine.dateFin,
+      nombreFactures: recapSemaine.nombreFactures,
+      totalNetAPayer: recapSemaine.totalSemaine,
+      totalExcedent: 0,
+      recapRubriques: recapSemaine.parRubrique,
+      faitPar: { nom: utilisateur?.nom },
+    });
+    setTimeout(() => window.print(), 60);
   }
 
   const designationChoisie = designations.find((d) => d.id === designationChoisieId);
@@ -275,6 +296,35 @@ export default function Caisse() {
             {recapJour.parRubrique?.length > 0 && (
               <div>
                 {recapJour.parRubrique.map((r) => (
+                  <div key={r.rubrique} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', padding: '0.3rem 0', borderTop: '1px solid var(--couleur-bordure)' }}>
+                    <span>{r.rubrique}</span>
+                    <span style={{ fontWeight: 600 }}>{r.montant.toLocaleString('fr-FR')} F</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {!dernierRecu && recapSemaine && (
+          <div className="carte no-print" style={{ padding: '1.5rem', marginBottom: '1.5rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.75rem' }}>
+              <div>
+                <h2 style={{ fontSize: '1rem', marginBottom: '0.3rem' }}>Bilan de la semaine</h2>
+                <p style={{ fontSize: '0.78rem', color: 'var(--couleur-texte-doux)' }}>
+                  Lundi à samedi, semaine en cours
+                </p>
+              </div>
+              <button className="bouton bouton-accent" onClick={gererImpressionRecapSemaine} disabled={!recapSemaine.totalSemaine}>
+                Imprimer
+              </button>
+            </div>
+            <div style={{ fontFamily: 'var(--police-titre)', fontSize: '1.6rem', color: 'var(--couleur-primaire)', marginTop: '0.75rem', marginBottom: recapSemaine.parRubrique?.length ? '0.75rem' : 0 }}>
+              {recapSemaine.totalSemaine.toLocaleString('fr-FR')} F
+            </div>
+            {recapSemaine.parRubrique?.length > 0 && (
+              <div>
+                {recapSemaine.parRubrique.map((r) => (
                   <div key={r.rubrique} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', padding: '0.3rem 0', borderTop: '1px solid var(--couleur-bordure)' }}>
                     <span>{r.rubrique}</span>
                     <span style={{ fontWeight: 600 }}>{r.montant.toLocaleString('fr-FR')} F</span>

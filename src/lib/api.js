@@ -74,6 +74,7 @@ export const api = {
   obtenirDetailFermeture: (id) => requete(`/api/fermetures/${id}/detail`),
 
   recettesDuJour: () => requete('/api/dashboard/recettes-jour'),
+  recettesSemaine: () => requete('/api/dashboard/recettes-semaine'),
   etatRecettes: (params) => {
     const qs = new URLSearchParams(params).toString();
     return requete(`/api/dashboard/etat-recettes${qs ? `?${qs}` : ''}`);
