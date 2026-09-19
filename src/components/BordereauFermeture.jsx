@@ -40,7 +40,7 @@ export default function BordereauFermeture({ fermeture }) {
         Du {formaterDateHeure(fermeture.dateDebut)} au {formaterDateHeure(fermeture.dateFin)}
       </p>
 
-      <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+      <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
         <span className="etiquette">Total remis</span>
         <div style={{ fontFamily: 'var(--police-titre)', fontSize: '2.2rem', color: 'var(--couleur-primaire)' }}>
           {total.toLocaleString('fr-FR')} F
@@ -50,60 +50,38 @@ export default function BordereauFermeture({ fermeture }) {
         </p>
       </div>
 
-      <h2 style={{ fontSize: '0.92rem', textTransform: 'uppercase', letterSpacing: '0.03em', color: 'var(--couleur-accent)', borderBottom: '1px solid var(--couleur-bordure)', paddingBottom: '0.4rem', marginBottom: '0.75rem' }}>
-        Détail par rubrique
+      <h2 style={{ fontSize: '0.92rem', textTransform: 'uppercase', letterSpacing: '0.03em', color: 'var(--couleur-accent)', borderBottom: '1px solid var(--couleur-bordure)', paddingBottom: '0.4rem', marginBottom: '0.6rem' }}>
+        Détail par désignation
       </h2>
-      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.92rem', marginBottom: '2.5rem' }}>
-        <tbody>
-          {(fermeture.recapRubriques || []).map((r) => (
-            <tr key={r.rubrique} style={{ borderTop: '1px solid var(--couleur-bordure)' }}>
-              <td style={{ padding: '0.6rem 0' }}>{r.rubrique}</td>
-              <td style={{ padding: '0.6rem 0', textAlign: 'right', fontWeight: 600 }}>{r.montant.toLocaleString('fr-FR')} F</td>
-            </tr>
-          ))}
-          <tr style={{ borderTop: '2px solid var(--couleur-primaire)' }}>
-            <td style={{ padding: '0.6rem 0', fontWeight: 700 }}>Total</td>
-            <td style={{ padding: '0.6rem 0', textAlign: 'right', fontWeight: 700 }}>{total.toLocaleString('fr-FR')} F</td>
-          </tr>
-        </tbody>
-      </table>
-
-      {fermeture.detailDesignations?.length > 0 && (
-        <>
-          <h2 style={{ fontSize: '0.92rem', textTransform: 'uppercase', letterSpacing: '0.03em', color: 'var(--couleur-accent)', borderBottom: '1px solid var(--couleur-bordure)', paddingBottom: '0.4rem', marginBottom: '0.75rem' }}>
-            Détail par désignation
-          </h2>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.88rem', marginBottom: '2.5rem' }}>
-            <thead>
-              <tr>
-                <td style={{ padding: '0 0 0.4rem 0', fontSize: '0.72rem', color: 'var(--couleur-texte-doux)' }}>Désignation</td>
-                <td style={{ padding: '0 0 0.4rem 0', fontSize: '0.72rem', color: 'var(--couleur-texte-doux)', textAlign: 'right' }}>Nombre</td>
-                <td style={{ padding: '0 0 0.4rem 0', fontSize: '0.72rem', color: 'var(--couleur-texte-doux)', textAlign: 'right' }}>Montant</td>
+      {(fermeture.detailDesignations?.length || 0) === 0 ? (
+        <p style={{ color: 'var(--couleur-texte-doux)', fontSize: '0.88rem', marginBottom: '2rem' }}>Aucune recette sur cette période.</p>
+      ) : (
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem', marginBottom: '2rem' }}>
+          <tbody>
+            {fermeture.detailDesignations.map((d) => (
+              <tr key={d.libelle} style={{ borderTop: '1px solid var(--couleur-bordure)' }}>
+                <td style={{ padding: '0.4rem 0' }}>{d.libelle} ({d.quantite})</td>
+                <td style={{ padding: '0.4rem 0', textAlign: 'right', fontWeight: 600, whiteSpace: 'nowrap' }}>{d.montant.toLocaleString('fr-FR')} F</td>
               </tr>
-            </thead>
-            <tbody>
-              {fermeture.detailDesignations.map((d) => (
-                <tr key={d.libelle} style={{ borderTop: '1px solid var(--couleur-bordure)' }}>
-                  <td style={{ padding: '0.5rem 0' }}>{d.libelle}</td>
-                  <td style={{ padding: '0.5rem 0', textAlign: 'right' }}>{d.quantite}</td>
-                  <td style={{ padding: '0.5rem 0', textAlign: 'right', fontWeight: 600 }}>{d.montant.toLocaleString('fr-FR')} F</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </>
+            ))}
+            <tr style={{ borderTop: '2px solid var(--couleur-primaire)' }}>
+              <td style={{ padding: '0.4rem 0', fontWeight: 700 }}>Total</td>
+              <td style={{ padding: '0.4rem 0', textAlign: 'right', fontWeight: 700 }}>{total.toLocaleString('fr-FR')} F</td>
+            </tr>
+          </tbody>
+        </table>
       )}
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', gap: '2rem', marginTop: '3rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', gap: '2rem', marginTop: '2rem' }}>
         <div style={{ flex: 1, textAlign: 'center' }}>
-          <p style={{ fontSize: '0.85rem', marginBottom: '2.5rem' }}>
+          <p style={{ fontSize: '0.85rem', marginBottom: '2rem' }}>
             Remis par : <strong>{fermeture.faitPar?.nom}</strong>
           </p>
           <div style={{ borderTop: '1px solid var(--couleur-texte)', width: '80%', margin: '0 auto' }} />
           <p style={{ fontSize: '0.75rem', color: 'var(--couleur-texte-doux)', marginTop: '0.3rem' }}>Signature</p>
         </div>
         <div style={{ flex: 1, textAlign: 'center' }}>
-          <p style={{ fontSize: '0.85rem', marginBottom: '2.5rem' }}>Reçu par le Curé</p>
+          <p style={{ fontSize: '0.85rem', marginBottom: '2rem' }}>Reçu par le Curé</p>
           <div style={{ borderTop: '1px solid var(--couleur-texte)', width: '80%', margin: '0 auto' }} />
           <p style={{ fontSize: '0.75rem', color: 'var(--couleur-texte-doux)', marginTop: '0.3rem' }}>Signature</p>
         </div>
