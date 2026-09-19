@@ -68,6 +68,32 @@ export default function BordereauFermeture({ fermeture }) {
         </tbody>
       </table>
 
+      {fermeture.detailDesignations?.length > 0 && (
+        <>
+          <h2 style={{ fontSize: '0.92rem', textTransform: 'uppercase', letterSpacing: '0.03em', color: 'var(--couleur-accent)', borderBottom: '1px solid var(--couleur-bordure)', paddingBottom: '0.4rem', marginBottom: '0.75rem' }}>
+            Détail par désignation
+          </h2>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.88rem', marginBottom: '2.5rem' }}>
+            <thead>
+              <tr>
+                <td style={{ padding: '0 0 0.4rem 0', fontSize: '0.72rem', color: 'var(--couleur-texte-doux)' }}>Désignation</td>
+                <td style={{ padding: '0 0 0.4rem 0', fontSize: '0.72rem', color: 'var(--couleur-texte-doux)', textAlign: 'right' }}>Nombre</td>
+                <td style={{ padding: '0 0 0.4rem 0', fontSize: '0.72rem', color: 'var(--couleur-texte-doux)', textAlign: 'right' }}>Montant</td>
+              </tr>
+            </thead>
+            <tbody>
+              {fermeture.detailDesignations.map((d) => (
+                <tr key={d.libelle} style={{ borderTop: '1px solid var(--couleur-bordure)' }}>
+                  <td style={{ padding: '0.5rem 0' }}>{d.libelle}</td>
+                  <td style={{ padding: '0.5rem 0', textAlign: 'right' }}>{d.quantite}</td>
+                  <td style={{ padding: '0.5rem 0', textAlign: 'right', fontWeight: 600 }}>{d.montant.toLocaleString('fr-FR')} F</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </>
+      )}
+
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: '2rem', marginTop: '3rem' }}>
         <div style={{ flex: 1, textAlign: 'center' }}>
           <p style={{ fontSize: '0.85rem', marginBottom: '2.5rem' }}>

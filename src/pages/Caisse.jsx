@@ -59,6 +59,7 @@ export default function Caisse() {
         totalNetAPayer: recapJour?.totalJour || 0,
         totalExcedent: 0,
         recapRubriques: recapJour?.parRubrique || [],
+        detailDesignations: recapJour?.parDesignation || [],
         faitPar: { nom: utilisateur?.nom },
       });
       setTimeout(() => window.print(), 60);
@@ -77,6 +78,7 @@ export default function Caisse() {
       totalNetAPayer: recapSemaine.totalSemaine,
       totalExcedent: 0,
       recapRubriques: recapSemaine.parRubrique,
+      detailDesignations: recapSemaine.parDesignation || [],
       faitPar: { nom: utilisateur?.nom },
     });
     setTimeout(() => window.print(), 60);
@@ -303,6 +305,20 @@ export default function Caisse() {
                 ))}
               </div>
             )}
+            {recapJour.parDesignation?.length > 0 && (
+              <div style={{ marginTop: '1rem' }}>
+                <p style={{ fontSize: '0.72rem', color: 'var(--couleur-texte-doux)', textTransform: 'uppercase', letterSpacing: '0.03em', marginBottom: '0.4rem' }}>
+                  Détail par désignation
+                </p>
+                {recapJour.parDesignation.map((d) => (
+                  <div key={d.libelle} style={{ display: 'flex', justifyContent: 'space-between', gap: '0.5rem', fontSize: '0.82rem', padding: '0.25rem 0', borderTop: '1px solid var(--couleur-bordure)' }}>
+                    <span>{d.libelle}</span>
+                    <span style={{ color: 'var(--couleur-texte-doux)', whiteSpace: 'nowrap' }}>{d.quantite} x</span>
+                    <span style={{ fontWeight: 600, whiteSpace: 'nowrap' }}>{d.montant.toLocaleString('fr-FR')} F</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
@@ -328,6 +344,20 @@ export default function Caisse() {
                   <div key={r.rubrique} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', padding: '0.3rem 0', borderTop: '1px solid var(--couleur-bordure)' }}>
                     <span>{r.rubrique}</span>
                     <span style={{ fontWeight: 600 }}>{r.montant.toLocaleString('fr-FR')} F</span>
+                  </div>
+                ))}
+              </div>
+            )}
+            {recapSemaine.parDesignation?.length > 0 && (
+              <div style={{ marginTop: '1rem' }}>
+                <p style={{ fontSize: '0.72rem', color: 'var(--couleur-texte-doux)', textTransform: 'uppercase', letterSpacing: '0.03em', marginBottom: '0.4rem' }}>
+                  Détail par désignation
+                </p>
+                {recapSemaine.parDesignation.map((d) => (
+                  <div key={d.libelle} style={{ display: 'flex', justifyContent: 'space-between', gap: '0.5rem', fontSize: '0.82rem', padding: '0.25rem 0', borderTop: '1px solid var(--couleur-bordure)' }}>
+                    <span>{d.libelle}</span>
+                    <span style={{ color: 'var(--couleur-texte-doux)', whiteSpace: 'nowrap' }}>{d.quantite} x</span>
+                    <span style={{ fontWeight: 600, whiteSpace: 'nowrap' }}>{d.montant.toLocaleString('fr-FR')} F</span>
                   </div>
                 ))}
               </div>
