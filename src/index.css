@@ -207,4 +207,7 @@ input, select {
   #ticket-impression table, #ticket-impression td, #ticket-impression th {
     border-color: #000 !important;
   }
+  .no-print {
+    display: none !important;
+  }
 }

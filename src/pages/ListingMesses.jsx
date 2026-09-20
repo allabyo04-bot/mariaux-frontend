@@ -222,7 +222,7 @@ export default function ListingMesses() {
           {parCategorie.map(({ categorie, entrees }) => {
             if (entrees.length === 0) return null;
             return (
-              <div key={categorie} style={{ marginBottom: '1rem', breakInside: 'avoid' }}>
+              <div key={categorie} style={{ marginBottom: '1rem' }}>
                 <h2
                   style={{
                     fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.02em',
@@ -336,6 +336,10 @@ export default function ListingMesses() {
               Nombre de lignes : {nombreDeLignes}
             </p>
           )}
+
+          <p style={{ textAlign: 'center', fontSize: '0.65rem', color: 'var(--couleur-texte-doux)', marginTop: '1.5rem', opacity: 0.6 }}>
+            LOGESPAC
+          </p>
         </div>
       </div>
 

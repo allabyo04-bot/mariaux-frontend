@@ -2,12 +2,9 @@ import { useEffect, useRef, useState } from 'react';
 import EnTete from '../components/EnTete';
 import ModaleDemandeMesse from '../components/ModaleDemandeMesse';
 import RecuFacture from '../components/RecuFacture';
-import BordereauFermeture from '../components/BordereauFermeture';
-import { useAuth } from '../context/AuthContext';
 import { api } from '../lib/api';
 
 export default function Caisse() {
-  const { utilisateur } = useAuth();
   const [designations, setDesignations] = useState([]);
   const [designationChoisieId, setDesignationChoisieId] = useState('');
   const [quantite, setQuantite] = useState(1);
@@ -27,62 +24,11 @@ export default function Caisse() {
   const [afficherHistorique, setAfficherHistorique] = useState(false);
   const [facturesJour, setFacturesJour] = useState([]);
   const [chargementHistorique, setChargementHistorique] = useState(false);
-  const [recapJour, setRecapJour] = useState(null);
-  const [recapSemaine, setRecapSemaine] = useState(null);
-  const [recapAImprimer, setRecapAImprimer] = useState(null);
   const recuRef = useRef(null);
 
   useEffect(() => {
     api.listerDesignations().then(setDesignations).catch((e) => setErreur(e.message));
-    chargerRecapJour();
-    chargerRecapSemaine();
   }, []);
-
-  function chargerRecapJour() {
-    api.recettesDuJour().then(setRecapJour).catch(() => {});
-  }
-
-  function chargerRecapSemaine() {
-    api.recettesSemaine().then(setRecapSemaine).catch(() => {});
-  }
-
-  async function gererImpressionRecapJour() {
-    setErreur('');
-    try {
-      const factures = await api.listerFactures();
-      const debut = new Date();
-      debut.setHours(0, 0, 0, 0);
-      setRecapAImprimer({
-        dateDebut: debut.toISOString(),
-        dateFin: new Date().toISOString(),
-        nombreFactures: factures.length,
-        totalNetAPayer: recapJour?.totalJour || 0,
-        totalExcedent: 0,
-        recapRubriques: recapJour?.parRubrique || [],
-        detailDesignations: recapJour?.parDesignation || [],
-        faitPar: { nom: utilisateur?.nom },
-      });
-      setTimeout(() => window.print(), 60);
-    } catch (e) {
-      setErreur(e.message);
-    }
-  }
-
-  function gererImpressionRecapSemaine() {
-    if (!recapSemaine) return;
-    setErreur('');
-    setRecapAImprimer({
-      dateDebut: recapSemaine.dateDebut,
-      dateFin: recapSemaine.dateFin,
-      nombreFactures: recapSemaine.nombreFactures,
-      totalNetAPayer: recapSemaine.totalSemaine,
-      totalExcedent: 0,
-      recapRubriques: recapSemaine.parRubrique,
-      detailDesignations: recapSemaine.parDesignation || [],
-      faitPar: { nom: utilisateur?.nom },
-    });
-    setTimeout(() => window.print(), 60);
-  }
 
   const designationChoisie = designations.find((d) => d.id === designationChoisieId);
 
@@ -263,7 +209,6 @@ export default function Caisse() {
       setFideleSelectionne(null);
       setMontantRecu('');
       setMontantRecuTouche(false);
-      chargerRecapJour();
       // Descend automatiquement jusqu'au reçu — sur une longue facture (neuvaine, etc.)
       // il se trouve loin en dessous du bouton et pouvait sembler "introuvable".
       setTimeout(() => recuRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60);
@@ -279,92 +224,6 @@ export default function Caisse() {
       <EnTete titre="Caisse" />
 
       <div className="page-conteneur" style={{ maxWidth: 1100 }}>
-        {!dernierRecu && recapJour && (
-          <div className="carte no-print" style={{ padding: '1.5rem', marginBottom: '1.5rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.75rem' }}>
-              <div>
-                <h2 style={{ fontSize: '1rem', marginBottom: '0.3rem' }}>Récap du jour</h2>
-                <p style={{ fontSize: '0.78rem', color: 'var(--couleur-texte-doux)' }}>
-                  Depuis minuit aujourd'hui
-                </p>
-              </div>
-              <button className="bouton bouton-accent" onClick={gererImpressionRecapJour} disabled={!recapJour.totalJour}>
-                Imprimer
-              </button>
-            </div>
-            <div style={{ fontFamily: 'var(--police-titre)', fontSize: '1.6rem', color: 'var(--couleur-primaire)', marginTop: '0.75rem', marginBottom: recapJour.parRubrique?.length ? '0.75rem' : 0 }}>
-              {recapJour.totalJour.toLocaleString('fr-FR')} F
-            </div>
-            {recapJour.parRubrique?.length > 0 && (
-              <div>
-                {recapJour.parRubrique.map((r) => (
-                  <div key={r.rubrique} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', padding: '0.3rem 0', borderTop: '1px solid var(--couleur-bordure)' }}>
-                    <span>{r.rubrique}</span>
-                    <span style={{ fontWeight: 600 }}>{r.montant.toLocaleString('fr-FR')} F</span>
-                  </div>
-                ))}
-              </div>
-            )}
-            {recapJour.parDesignation?.length > 0 && (
-              <div style={{ marginTop: '1rem' }}>
-                <p style={{ fontSize: '0.72rem', color: 'var(--couleur-texte-doux)', textTransform: 'uppercase', letterSpacing: '0.03em', marginBottom: '0.4rem' }}>
-                  Détail par désignation
-                </p>
-                {recapJour.parDesignation.map((d) => (
-                  <div key={d.libelle} style={{ display: 'flex', justifyContent: 'space-between', gap: '0.5rem', fontSize: '0.82rem', padding: '0.25rem 0', borderTop: '1px solid var(--couleur-bordure)' }}>
-                    <span>{d.libelle}</span>
-                    <span style={{ color: 'var(--couleur-texte-doux)', whiteSpace: 'nowrap' }}>{d.quantite} x</span>
-                    <span style={{ fontWeight: 600, whiteSpace: 'nowrap' }}>{d.montant.toLocaleString('fr-FR')} F</span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
-        {!dernierRecu && recapSemaine && (
-          <div className="carte no-print" style={{ padding: '1.5rem', marginBottom: '1.5rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.75rem' }}>
-              <div>
-                <h2 style={{ fontSize: '1rem', marginBottom: '0.3rem' }}>Bilan de la semaine</h2>
-                <p style={{ fontSize: '0.78rem', color: 'var(--couleur-texte-doux)' }}>
-                  Lundi à samedi, semaine en cours
-                </p>
-              </div>
-              <button className="bouton bouton-accent" onClick={gererImpressionRecapSemaine} disabled={!recapSemaine.totalSemaine}>
-                Imprimer
-              </button>
-            </div>
-            <div style={{ fontFamily: 'var(--police-titre)', fontSize: '1.6rem', color: 'var(--couleur-primaire)', marginTop: '0.75rem', marginBottom: recapSemaine.parRubrique?.length ? '0.75rem' : 0 }}>
-              {recapSemaine.totalSemaine.toLocaleString('fr-FR')} F
-            </div>
-            {recapSemaine.parRubrique?.length > 0 && (
-              <div>
-                {recapSemaine.parRubrique.map((r) => (
-                  <div key={r.rubrique} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', padding: '0.3rem 0', borderTop: '1px solid var(--couleur-bordure)' }}>
-                    <span>{r.rubrique}</span>
-                    <span style={{ fontWeight: 600 }}>{r.montant.toLocaleString('fr-FR')} F</span>
-                  </div>
-                ))}
-              </div>
-            )}
-            {recapSemaine.parDesignation?.length > 0 && (
-              <div style={{ marginTop: '1rem' }}>
-                <p style={{ fontSize: '0.72rem', color: 'var(--couleur-texte-doux)', textTransform: 'uppercase', letterSpacing: '0.03em', marginBottom: '0.4rem' }}>
-                  Détail par désignation
-                </p>
-                {recapSemaine.parDesignation.map((d) => (
-                  <div key={d.libelle} style={{ display: 'flex', justifyContent: 'space-between', gap: '0.5rem', fontSize: '0.82rem', padding: '0.25rem 0', borderTop: '1px solid var(--couleur-bordure)' }}>
-                    <span>{d.libelle}</span>
-                    <span style={{ color: 'var(--couleur-texte-doux)', whiteSpace: 'nowrap' }}>{d.quantite} x</span>
-                    <span style={{ fontWeight: 600, whiteSpace: 'nowrap' }}>{d.montant.toLocaleString('fr-FR')} F</span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
         {dernierRecu && (
           <div ref={recuRef} className="carte no-print" style={{ padding: '1.75rem', borderColor: 'var(--couleur-succes)', marginBottom: '1.5rem', scrollMarginTop: '1.5rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.3rem', flexWrap: 'wrap', gap: '0.75rem' }}>
@@ -596,12 +455,6 @@ export default function Caisse() {
         </div>
       )}
 
-      {recapAImprimer && (
-        <div id="zone-impression-bordereau" style={{ display: 'none' }}>
-          <BordereauFermeture fermeture={recapAImprimer} />
-        </div>
-      )}
-
       <style>{`
         .caisse-grille {
           display: flex;
@@ -617,9 +470,8 @@ export default function Caisse() {
         }
         @media print {
           body * { visibility: hidden; }
-          #zone-impression-recu, #zone-impression-recu *,
-          #zone-impression-bordereau, #zone-impression-bordereau * { visibility: visible; display: block !important; }
-          #zone-impression-recu, #zone-impression-bordereau { position: absolute; top: 0; left: 0; }
+          #zone-impression-recu, #zone-impression-recu * { visibility: visible; display: block !important; }
+          #zone-impression-recu { position: absolute; top: 0; left: 0; }
         }
       `}</style>
 

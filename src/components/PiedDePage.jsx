@@ -1,6 +1,7 @@
 export default function PiedDePage() {
   return (
     <footer
+      className="no-print"
       style={{
         textAlign: 'center',
         padding: '1rem',

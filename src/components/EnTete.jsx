@@ -40,6 +40,16 @@ export default function EnTete({ titre }) {
           Listing des messes
         </button>
 
+        {utilisateur?.role === 'CAISSE' && (
+          <button
+            onClick={() => allerA('/etat')}
+            className="bouton bouton-discret"
+            style={{ background: 'transparent', color: '#fff', borderColor: 'rgba(255,255,255,0.3)' }}
+          >
+            État
+          </button>
+        )}
+
         {utilisateur?.role === 'CURE' && (
           <details id="menu-admin" style={{ position: 'relative' }}>
             <summary
