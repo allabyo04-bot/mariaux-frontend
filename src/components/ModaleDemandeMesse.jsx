@@ -26,6 +26,19 @@ function formaterDateCourte(chaineDate) {
   return date.toLocaleDateString('fr-FR', { weekday: 'short', day: '2-digit', month: '2-digit' });
 }
 
+// Formules fréquentes proposées en un clic sous le champ Intention — liste
+// figée, construite à partir des formules les plus vues dans les intentions
+// déjà saisies. Facile à compléter plus tard si une nouvelle formule revient
+// souvent (il suffit de l'ajouter ici).
+const FORMULES_FREQUENTES = [
+  "et de toutes les âmes du purgatoire",
+  "et de toutes les âmes les plus délaissées du purgatoire",
+  "et de toute sa famille",
+  "et de tous les défunts de la famille",
+  "et implorer sa protection sur toute la famille",
+  "et de toutes les âmes délaissées du purgatoire",
+];
+
 function genererDatesEntre(debut, fin) {
   const dates = [];
   let curseur = new Date(`${debut}T12:00:00`);
@@ -99,6 +112,14 @@ export default function ModaleDemandeMesse({ designation, fideleParDefaut, fidel
 
   function choisirDureePeriode(jours) {
     setNombreJours(jours);
+  }
+
+  function ajouterFormule(formule) {
+    setIntention((texte) => {
+      const actuel = texte.trimEnd().replace(/[.,;]+$/, '');
+      if (!actuel) return `${formule}.`;
+      return `${actuel} ${formule}.`;
+    });
   }
 
   const heuresDuJourFixe = jourFixe && grilleHoraires ? grilleHoraires[jourFixe] || [] : [];
@@ -287,8 +308,23 @@ export default function ModaleDemandeMesse({ designation, fideleParDefaut, fidel
             onChange={(e) => setIntention(e.target.value)}
             placeholder="Ex : Pour implorer l'assistance et l'intercession de Marie..."
             required
+            spellCheck="true"
+            lang="fr"
             style={!intention.trim() && erreur ? { borderColor: 'var(--couleur-danger)' } : undefined}
           />
+          <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', marginTop: '0.5rem' }}>
+            {FORMULES_FREQUENTES.map((formule) => (
+              <button
+                key={formule}
+                type="button"
+                className="bouton bouton-discret"
+                style={{ padding: '0.25rem 0.6rem', fontSize: '0.75rem' }}
+                onClick={() => ajouterFormule(formule)}
+              >
+                + {formule}
+              </button>
+            ))}
+          </div>
         </div>
 
         {mode === 'unique' ? (
