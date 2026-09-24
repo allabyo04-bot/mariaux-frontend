@@ -37,6 +37,15 @@ function genererDatesEntre(debut, fin) {
   return dates;
 }
 
+// Calcule la date de fin à partir de la date de début et du nombre de jours
+// souhaité, jour de début inclus (ex : 9 jours à partir du 20 -> fin le 28).
+function calculerFinPeriode(debut, jours) {
+  if (!debut || !jours || jours < 1) return '';
+  const d = new Date(`${debut}T12:00:00`);
+  d.setDate(d.getDate() + (Number(jours) - 1));
+  return d.toISOString().slice(0, 10);
+}
+
 export default function ModaleDemandeMesse({ designation, fideleParDefaut, fideleNom, onValider, onAnnuler }) {
   const [mode, setMode] = useState('unique'); // 'unique' | 'periode'
   const [typeIntention, setTypeIntention] = useState(fideleParDefaut?.typeIntentionParDefaut || TYPES_INTENTION[0]);
@@ -52,6 +61,7 @@ export default function ModaleDemandeMesse({ designation, fideleParDefaut, fidel
   // Mode "période"
   const [debutPeriode, setDebutPeriode] = useState('');
   const [finPeriode, setFinPeriode] = useState('');
+  const [nombreJours, setNombreJours] = useState('');
   const [momentPeriode, setMomentPeriode] = useState('matin'); // 'matin' | 'soir'
   const [heuresParDate, setHeuresParDate] = useState({}); // { '2026-08-01': '19:00' }
 
@@ -79,6 +89,17 @@ export default function ModaleDemandeMesse({ designation, fideleParDefaut, fidel
     if (!debutPeriode || !finPeriode || finPeriode < debutPeriode) return [];
     return genererDatesEntre(debutPeriode, finPeriode);
   }, [debutPeriode, finPeriode]);
+
+  // La date de fin est toujours calculée automatiquement à partir du nombre
+  // de jours souhaité — plus besoin de compter à la main pour une neuvaine,
+  // un trentain, ou n'importe quelle autre durée (5, 7 jours...).
+  useEffect(() => {
+    setFinPeriode(calculerFinPeriode(debutPeriode, nombreJours));
+  }, [debutPeriode, nombreJours]);
+
+  function choisirDureePeriode(jours) {
+    setNombreJours(jours);
+  }
 
   const heuresDuJourFixe = jourFixe && grilleHoraires ? grilleHoraires[jourFixe] || [] : [];
   useEffect(() => { setHeureFixe(''); }, [jourFixe]);
@@ -368,15 +389,38 @@ export default function ModaleDemandeMesse({ designation, fideleParDefaut, fidel
           </>
         ) : (
           <>
-            <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1rem' }}>
+            <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '0.75rem' }}>
               <div style={{ flex: 1 }}>
                 <label className="etiquette">Du</label>
                 <input type="date" className="champ" value={debutPeriode} onChange={(e) => setDebutPeriode(e.target.value)} />
               </div>
               <div style={{ flex: 1 }}>
-                <label className="etiquette">Au</label>
-                <input type="date" className="champ" value={finPeriode} onChange={(e) => setFinPeriode(e.target.value)} />
+                <label className="etiquette">Nombre de jours</label>
+                <input
+                  type="number"
+                  min={1}
+                  className="champ"
+                  value={nombreJours}
+                  onChange={(e) => setNombreJours(e.target.value)}
+                  placeholder="Ex : 5, 7, 9, 30…"
+                />
               </div>
+              <div style={{ flex: 1 }}>
+                <label className="etiquette">Au (calculé)</label>
+                <input type="date" className="champ" value={finPeriode} readOnly disabled />
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
+              <button type="button" className="bouton bouton-discret" style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }} onClick={() => choisirDureePeriode(3)}>
+                3 jours (triduum)
+              </button>
+              <button type="button" className="bouton bouton-discret" style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }} onClick={() => choisirDureePeriode(9)}>
+                9 jours (neuvaine)
+              </button>
+              <button type="button" className="bouton bouton-discret" style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }} onClick={() => choisirDureePeriode(30)}>
+                30 jours (trentain)
+              </button>
             </div>
 
             {datesPeriode.length > 0 && (
