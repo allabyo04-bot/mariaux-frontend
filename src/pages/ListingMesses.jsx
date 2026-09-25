@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import EnTete from '../components/EnTete';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../lib/api';
@@ -66,13 +66,27 @@ export default function ListingMesses() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [heuresDuJour, date]);
 
+  // Numéro de la dernière demande lancée — si l'utilisatrice change vite de
+  // date/heure, une réponse arrivée en retard sur un choix précédent est
+  // ignorée au lieu d'écraser l'affichage courant avec le mauvais contenu.
+  const requeteEnCours = useRef(0);
+
   function charger(d, h) {
+    const idRequete = ++requeteEnCours.current;
     setChargement(true);
     setErreur('');
     api.listerMesses({ date: d })
-      .then((tout) => setMesses(tout.filter((m) => m.heureDebut === h)))
-      .catch((e) => setErreur(e.message))
-      .finally(() => setChargement(false));
+      .then((tout) => {
+        if (idRequete !== requeteEnCours.current) return;
+        setMesses(tout.filter((m) => m.heureDebut === h));
+      })
+      .catch((e) => {
+        if (idRequete !== requeteEnCours.current) return;
+        setErreur(e.message);
+      })
+      .finally(() => {
+        if (idRequete === requeteEnCours.current) setChargement(false);
+      });
   }
 
   function gererChangementHeure(nouvelleHeure) {
