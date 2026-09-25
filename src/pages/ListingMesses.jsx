@@ -244,16 +244,16 @@ export default function ListingMesses() {
               // sans repère.
               <table key={categorie} style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '0 0.35rem', marginBottom: '0.65rem' }}>
                 <thead style={{ display: 'table-header-group' }}>
-                  <tr>
-                    <td style={{ padding: 0 }}>
-                      <h1 style={{ fontSize: '1rem', textAlign: 'center', marginBottom: '0.6rem', textTransform: 'capitalize' }}>
+                  <tr style={{ breakAfter: 'avoid' }}>
+                    <td style={{ padding: 0, breakAfter: 'avoid' }}>
+                      <h1 style={{ fontSize: '1rem', textAlign: 'center', marginBottom: '0.6rem', textTransform: 'capitalize', breakAfter: 'avoid' }}>
                         {titre}
                       </h1>
                       <h2
                         style={{
                           fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.02em',
                           color: 'var(--couleur-accent)', borderBottom: '1px solid var(--couleur-bordure)',
-                          paddingBottom: '0.25rem', marginBottom: '0.4rem',
+                          paddingBottom: '0.25rem', marginBottom: '0.4rem', breakAfter: 'avoid',
                         }}
                       >
                         {categorie}
