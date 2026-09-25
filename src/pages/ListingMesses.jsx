@@ -225,30 +225,25 @@ export default function ListingMesses() {
             </div>
           </div>
 
+          <h1 style={{ fontSize: '1rem', textAlign: 'center', marginBottom: '1.1rem', textTransform: 'capitalize' }}>
+            {titre}
+          </h1>
+
           {nombreDeLignes === 0 && !chargement && (
-            <>
-              <h1 style={{ fontSize: '1rem', textAlign: 'center', marginBottom: '1.1rem', textTransform: 'capitalize' }}>
-                {titre}
-              </h1>
-              <p style={{ textAlign: 'center', color: 'var(--couleur-texte-doux)' }}>Aucune intention pour cette messe.</p>
-            </>
+            <p style={{ textAlign: 'center', color: 'var(--couleur-texte-doux)' }}>Aucune intention pour cette messe.</p>
           )}
 
           {parCategorie.map(({ categorie, entrees }) => {
             if (entrees.length === 0) return null;
             return (
               // Chaque catégorie est son propre tableau : le navigateur répète
-              // automatiquement le <thead> (titre + type d'intention) en haut
-              // de chaque nouvelle page, si cette catégorie s'étale sur
-              // plusieurs pages à l'impression — plus jamais de page "orpheline"
-              // sans repère.
+              // automatiquement le <thead> (type d'intention) en haut de chaque
+              // nouvelle page, si cette catégorie s'étale sur plusieurs pages
+              // à l'impression — plus jamais de page "orpheline" sans repère.
               <table key={categorie} style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '0 0.35rem', marginBottom: '0.65rem' }}>
                 <thead style={{ display: 'table-header-group' }}>
                   <tr style={{ breakAfter: 'avoid' }}>
                     <td style={{ padding: 0, breakAfter: 'avoid' }}>
-                      <h1 style={{ fontSize: '1rem', textAlign: 'center', marginBottom: '0.6rem', textTransform: 'capitalize', breakAfter: 'avoid' }}>
-                        {titre}
-                      </h1>
                       <h2
                         style={{
                           fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.02em',
