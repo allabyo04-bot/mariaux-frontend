@@ -225,123 +225,140 @@ export default function ListingMesses() {
             </div>
           </div>
 
-          <h1 style={{ fontSize: '1rem', textAlign: 'center', marginBottom: '1.1rem', textTransform: 'capitalize' }}>
-            {titre}
-          </h1>
-
           {nombreDeLignes === 0 && !chargement && (
-            <p style={{ textAlign: 'center', color: 'var(--couleur-texte-doux)' }}>Aucune intention pour cette messe.</p>
+            <>
+              <h1 style={{ fontSize: '1rem', textAlign: 'center', marginBottom: '1.1rem', textTransform: 'capitalize' }}>
+                {titre}
+              </h1>
+              <p style={{ textAlign: 'center', color: 'var(--couleur-texte-doux)' }}>Aucune intention pour cette messe.</p>
+            </>
           )}
 
           {parCategorie.map(({ categorie, entrees }) => {
             if (entrees.length === 0) return null;
             return (
-              <div key={categorie} style={{ marginBottom: '1rem' }}>
-                <h2
-                  style={{
-                    fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.02em',
-                    color: 'var(--couleur-accent)', borderBottom: '1px solid var(--couleur-bordure)',
-                    paddingBottom: '0.25rem', marginBottom: '0.4rem',
-                  }}
-                >
-                  {categorie}
-                </h2>
-
-                {entrees.map((m) => (
-                  <div
-                    key={m.id}
-                    style={{
-                      border: '1px solid var(--couleur-bordure)', borderRadius: '4px',
-                      padding: '0.5rem 0.75rem', marginBottom: '0.35rem', breakInside: 'avoid',
-                      fontSize: '0.88rem', lineHeight: 1.35,
-                    }}
-                  >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.6rem' }}>
-                      <span>{m.intention}</span>
-                      <div className="no-print" style={{ display: 'flex', gap: '0.4rem', flexShrink: 0 }}>
-                        <button
-                          className="bouton bouton-discret"
-                          style={{ padding: '0.15rem 0.5rem', fontSize: '0.75rem' }}
-                          onClick={() => ouvrirCorrectionIntention(m)}
-                          disabled={utilisateur?.role === 'CAISSE' && m.nombreCorrections >= 1}
-                          title={utilisateur?.role === 'CAISSE' && m.nombreCorrections >= 1 ? "Déjà corrigée une fois — demande au Curé" : ''}
-                        >
-                          Corriger l'intention
-                        </button>
-                        <button
-                          className="bouton bouton-discret"
-                          style={{ padding: '0.15rem 0.5rem', fontSize: '0.75rem' }}
-                          onClick={() => ouvrirCorrection(m)}
-                        >
-                          Corriger date/heure
-                        </button>
-                      </div>
-                    </div>
-
-                    {correctionIntentionId === m.id && (
-                      <div className="no-print" style={{ marginTop: '0.6rem', padding: '0.6rem', background: 'var(--couleur-fond)', borderRadius: '4px' }}>
-                        <label className="etiquette" style={{ fontSize: '0.7rem' }}>Nouvelle intention</label>
-                        <textarea
-                          className="champ"
-                          rows={3}
-                          style={{ fontSize: '0.85rem', marginBottom: '0.5rem' }}
-                          value={nouvelleIntentionTexte}
-                          onChange={(e) => setNouvelleIntentionTexte(e.target.value)}
-                        />
-                        <label className="etiquette" style={{ fontSize: '0.7rem' }}>Motif de la correction</label>
-                        <input
-                          className="champ"
-                          style={{ fontSize: '0.85rem', marginBottom: '0.6rem' }}
-                          value={motifCorrection}
-                          onChange={(e) => setMotifCorrection(e.target.value)}
-                          placeholder="Ex : faute de frappe sur le nom"
-                        />
-                        <div style={{ display: 'flex', gap: '0.5rem' }}>
-                          <button className="bouton bouton-accent" style={{ padding: '0.35rem 0.7rem', fontSize: '0.8rem' }} onClick={validerCorrectionIntention}>
-                            Valider
-                          </button>
-                          <button className="bouton bouton-discret" style={{ padding: '0.35rem 0.7rem', fontSize: '0.8rem' }} onClick={annulerCorrectionIntention}>
-                            Annuler
-                          </button>
+              // Chaque catégorie est son propre tableau : le navigateur répète
+              // automatiquement le <thead> (titre + type d'intention) en haut
+              // de chaque nouvelle page, si cette catégorie s'étale sur
+              // plusieurs pages à l'impression — plus jamais de page "orpheline"
+              // sans repère.
+              <table key={categorie} style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '0 0.35rem', marginBottom: '0.65rem' }}>
+                <thead style={{ display: 'table-header-group' }}>
+                  <tr>
+                    <td style={{ padding: 0 }}>
+                      <h1 style={{ fontSize: '1rem', textAlign: 'center', marginBottom: '0.6rem', textTransform: 'capitalize' }}>
+                        {titre}
+                      </h1>
+                      <h2
+                        style={{
+                          fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.02em',
+                          color: 'var(--couleur-accent)', borderBottom: '1px solid var(--couleur-bordure)',
+                          paddingBottom: '0.25rem', marginBottom: '0.4rem',
+                        }}
+                      >
+                        {categorie}
+                      </h2>
+                    </td>
+                  </tr>
+                </thead>
+                <tbody>
+                  {entrees.map((m) => (
+                    <tr key={m.id} style={{ breakInside: 'avoid' }}>
+                      <td
+                        style={{
+                          border: '1px solid var(--couleur-bordure)', borderRadius: '4px',
+                          padding: '0.5rem 0.75rem',
+                          fontSize: '0.88rem', lineHeight: 1.35,
+                        }}
+                      >
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.6rem' }}>
+                          <span>{m.intention}</span>
+                          <div className="no-print" style={{ display: 'flex', gap: '0.4rem', flexShrink: 0 }}>
+                            <button
+                              className="bouton bouton-discret"
+                              style={{ padding: '0.15rem 0.5rem', fontSize: '0.75rem' }}
+                              onClick={() => ouvrirCorrectionIntention(m)}
+                              disabled={utilisateur?.role === 'CAISSE' && m.nombreCorrections >= 1}
+                              title={utilisateur?.role === 'CAISSE' && m.nombreCorrections >= 1 ? "Déjà corrigée une fois — demande au Curé" : ''}
+                            >
+                              Corriger l'intention
+                            </button>
+                            <button
+                              className="bouton bouton-discret"
+                              style={{ padding: '0.15rem 0.5rem', fontSize: '0.75rem' }}
+                              onClick={() => ouvrirCorrection(m)}
+                            >
+                              Corriger date/heure
+                            </button>
+                          </div>
                         </div>
-                      </div>
-                    )}
 
-                    {correctionId === m.id && (
-                      <div className="no-print" style={{ marginTop: '0.6rem', padding: '0.6rem', background: 'var(--couleur-fond)', borderRadius: '4px', display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'flex-end' }}>
-                        <div>
-                          <label className="etiquette" style={{ fontSize: '0.7rem' }}>Nouvelle date</label>
-                          <input
-                            type="date"
-                            className="champ"
-                            style={{ fontSize: '0.85rem', padding: '0.35rem' }}
-                            value={correctionDate}
-                            onChange={(e) => { setCorrectionDate(e.target.value); setCorrectionHeure(''); }}
-                          />
-                        </div>
-                        <div>
-                          <label className="etiquette" style={{ fontSize: '0.7rem' }}>Nouvelle heure</label>
-                          <select
-                            className="champ"
-                            style={{ fontSize: '0.85rem', padding: '0.35rem' }}
-                            value={correctionHeure}
-                            onChange={(e) => setCorrectionHeure(e.target.value)}
-                          >
-                            <option value="">— Choisir —</option>
-                            {heuresPourDate(correctionDate).map((h) => <option key={h} value={h}>{h}</option>)}
-                          </select>
-                        </div>
-                        <button className="bouton bouton-accent" style={{ padding: '0.35rem 0.7rem', fontSize: '0.8rem' }} onClick={validerCorrection}>
-                          Valider
-                        </button>
-                        <button className="bouton bouton-discret" style={{ padding: '0.35rem 0.7rem', fontSize: '0.8rem' }} onClick={annulerCorrection}>
-                          Annuler
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
+                        {correctionIntentionId === m.id && (
+                          <div className="no-print" style={{ marginTop: '0.6rem', padding: '0.6rem', background: 'var(--couleur-fond)', borderRadius: '4px' }}>
+                            <label className="etiquette" style={{ fontSize: '0.7rem' }}>Nouvelle intention</label>
+                            <textarea
+                              className="champ"
+                              rows={3}
+                              style={{ fontSize: '0.85rem', marginBottom: '0.5rem' }}
+                              value={nouvelleIntentionTexte}
+                              onChange={(e) => setNouvelleIntentionTexte(e.target.value)}
+                            />
+                            <label className="etiquette" style={{ fontSize: '0.7rem' }}>Motif de la correction</label>
+                            <input
+                              className="champ"
+                              style={{ fontSize: '0.85rem', marginBottom: '0.6rem' }}
+                              value={motifCorrection}
+                              onChange={(e) => setMotifCorrection(e.target.value)}
+                              placeholder="Ex : faute de frappe sur le nom"
+                            />
+                            <div style={{ display: 'flex', gap: '0.5rem' }}>
+                              <button className="bouton bouton-accent" style={{ padding: '0.35rem 0.7rem', fontSize: '0.8rem' }} onClick={validerCorrectionIntention}>
+                                Valider
+                              </button>
+                              <button className="bouton bouton-discret" style={{ padding: '0.35rem 0.7rem', fontSize: '0.8rem' }} onClick={annulerCorrectionIntention}>
+                                Annuler
+                              </button>
+                            </div>
+                          </div>
+                        )}
+
+                        {correctionId === m.id && (
+                          <div className="no-print" style={{ marginTop: '0.6rem', padding: '0.6rem', background: 'var(--couleur-fond)', borderRadius: '4px', display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'flex-end' }}>
+                            <div>
+                              <label className="etiquette" style={{ fontSize: '0.7rem' }}>Nouvelle date</label>
+                              <input
+                                type="date"
+                                className="champ"
+                                style={{ fontSize: '0.85rem', padding: '0.35rem' }}
+                                value={correctionDate}
+                                onChange={(e) => { setCorrectionDate(e.target.value); setCorrectionHeure(''); }}
+                              />
+                            </div>
+                            <div>
+                              <label className="etiquette" style={{ fontSize: '0.7rem' }}>Nouvelle heure</label>
+                              <select
+                                className="champ"
+                                style={{ fontSize: '0.85rem', padding: '0.35rem' }}
+                                value={correctionHeure}
+                                onChange={(e) => setCorrectionHeure(e.target.value)}
+                              >
+                                <option value="">— Choisir —</option>
+                                {heuresPourDate(correctionDate).map((h) => <option key={h} value={h}>{h}</option>)}
+                              </select>
+                            </div>
+                            <button className="bouton bouton-accent" style={{ padding: '0.35rem 0.7rem', fontSize: '0.8rem' }} onClick={validerCorrection}>
+                              Valider
+                            </button>
+                            <button className="bouton bouton-discret" style={{ padding: '0.35rem 0.7rem', fontSize: '0.8rem' }} onClick={annulerCorrection}>
+                              Annuler
+                            </button>
+                          </div>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             );
           })}
 
