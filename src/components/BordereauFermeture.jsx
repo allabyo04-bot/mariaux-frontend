@@ -4,6 +4,22 @@ function formaterDateHeure(dateISO) {
   });
 }
 
+// Pour un état de période choisi par dates (sans heures) : AAAA-MM-JJ -> JJ/MM/AAAA,
+// sans passer par un objet Date (aucun risque de décalage d'un jour).
+function formaterDateSeule(dateISO) {
+  const [a, m, j] = String(dateISO).slice(0, 10).split('-');
+  return `${j}/${m}/${a}`;
+}
+
+function libellePeriode(f) {
+  if (f.sansHeure) {
+    const debut = formaterDateSeule(f.dateDebut);
+    const fin = formaterDateSeule(f.dateFin);
+    return debut === fin ? `Le ${debut}` : `Du ${debut} au ${fin}`;
+  }
+  return `Du ${formaterDateHeure(f.dateDebut)} au ${formaterDateHeure(f.dateFin)}`;
+}
+
 export default function BordereauFermeture({ fermeture }) {
   if (!fermeture) return null;
   const total = Number(fermeture.totalNetAPayer) + Number(fermeture.totalExcedent);
@@ -37,7 +53,7 @@ export default function BordereauFermeture({ fermeture }) {
         Bordereau de remise de caisse
       </h1>
       <p style={{ textAlign: 'center', color: 'var(--couleur-texte-doux)', fontSize: '0.88rem', marginBottom: '1.75rem' }}>
-        Du {formaterDateHeure(fermeture.dateDebut)} au {formaterDateHeure(fermeture.dateFin)}
+        {libellePeriode(fermeture)}
       </p>
 
       <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>

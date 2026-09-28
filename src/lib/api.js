@@ -75,6 +75,7 @@ export const api = {
 
   recettesDuJour: () => requete('/api/dashboard/recettes-jour'),
   recettesSemaine: () => requete('/api/dashboard/recettes-semaine'),
+  recettesPeriode: (debut, fin) => requete(`/api/dashboard/recettes-periode?debut=${debut}&fin=${fin}`),
   etatRecettes: (params) => {
     const qs = new URLSearchParams(params).toString();
     return requete(`/api/dashboard/etat-recettes${qs ? `?${qs}` : ''}`);
