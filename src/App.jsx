@@ -12,6 +12,7 @@ import Utilisateurs from './pages/Utilisateurs';
 import MonCompte from './pages/MonCompte';
 import FermeturesCaisse from './pages/FermeturesCaisse';
 import JournalCorrections from './pages/JournalCorrections';
+import JournalConnexions from './pages/JournalConnexions';
 import EtatCaisse from './pages/EtatCaisse';
 import PiedDePage from './components/PiedDePage';
 
@@ -31,6 +32,7 @@ export default function App() {
           <Route path="/mon-compte" element={<RouteProtegee enfant={<MonCompte />} />} />
           <Route path="/fermetures" element={<RouteProtegee roleRequis="CURE" enfant={<FermeturesCaisse />} />} />
           <Route path="/journal-corrections" element={<RouteProtegee roleRequis="CURE" enfant={<JournalCorrections />} />} />
+          <Route path="/journal-connexions" element={<RouteProtegee roleRequis="CURE" enfant={<JournalConnexions />} />} />
           <Route path="/etat" element={<RouteProtegee roleRequis="CAISSE" enfant={<EtatCaisse />} />} />
         </Routes>
         <PiedDePage />

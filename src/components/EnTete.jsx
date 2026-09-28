@@ -75,6 +75,7 @@ export default function EnTete({ titre }) {
                 { chemin: '/utilisateurs', label: 'Utilisateurs' },
                 { chemin: '/fermetures', label: 'Fermetures de caisse' },
                 { chemin: '/journal-corrections', label: 'Journal des corrections' },
+                { chemin: '/journal-connexions', label: 'Journal des connexions' },
               ].map((item) => (
                 <button
                   key={item.chemin}

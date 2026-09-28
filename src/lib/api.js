@@ -95,6 +95,7 @@ export const api = {
   corrigerIntention: (id, donnees) =>
     requete(`/api/messes/${id}/intention`, { method: 'PUT', body: JSON.stringify(donnees) }),
   listerCorrectionsIntention: () => requete('/api/messes/corrections/journal'),
+  journalConnexions: () => requete('/api/auth/journal'),
   listerHorairesDetail: () => requete('/api/horaires/detail'),
   creerHoraire: (donnees) =>
     requete('/api/horaires', { method: 'POST', body: JSON.stringify(donnees) }),
