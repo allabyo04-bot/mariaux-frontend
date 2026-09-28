@@ -78,7 +78,6 @@ export default function Connexion() {
             <input
               id="pin"
               type="password"
-              inputMode="numeric"
               className="champ"
               value={pin}
               onChange={(e) => setPin(e.target.value)}

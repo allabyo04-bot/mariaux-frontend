@@ -55,7 +55,7 @@ export default function Utilisateurs() {
   async function gererReinitialisationPin(id) {
     setErreur(''); setSucces('');
     if (!nouveauPinSaisi || nouveauPinSaisi.length < 4) {
-      setErreur('Le nouveau PIN doit faire au moins 4 chiffres');
+      setErreur('Le nouveau PIN doit faire au moins 4 caractères');
       return;
     }
     try {
@@ -86,7 +86,7 @@ export default function Utilisateurs() {
             </div>
             <div style={{ flex: '1 1 120px' }}>
               <label className="etiquette">PIN</label>
-              <input type="password" inputMode="numeric" className="champ" value={pin} onChange={(e) => setPin(e.target.value)} />
+              <input type="password" className="champ" value={pin} onChange={(e) => setPin(e.target.value)} />
             </div>
             <div style={{ flex: '1 1 140px' }}>
               <label className="etiquette">Rôle</label>
@@ -130,7 +130,6 @@ export default function Utilisateurs() {
                         <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
                           <input
                             type="password"
-                            inputMode="numeric"
                             placeholder="Nouveau PIN"
                             value={nouveauPinSaisi}
                             onChange={(e) => setNouveauPinSaisi(e.target.value)}

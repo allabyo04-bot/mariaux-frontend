@@ -17,7 +17,7 @@ export default function MonCompte() {
     setErreur(''); setSucces('');
 
     if (nouveauPin.length < 4) {
-      setErreur('Le nouveau PIN doit faire au moins 4 chiffres');
+      setErreur('Le nouveau PIN doit faire au moins 4 caractères');
       return;
     }
     if (nouveauPin !== confirmationPin) {
@@ -52,15 +52,15 @@ export default function MonCompte() {
           <form onSubmit={gererSoumission}>
             <div style={{ marginBottom: '1rem' }}>
               <label className="etiquette">PIN actuel</label>
-              <input type="password" inputMode="numeric" className="champ" value={ancienPin} onChange={(e) => setAncienPin(e.target.value)} />
+              <input type="password" className="champ" value={ancienPin} onChange={(e) => setAncienPin(e.target.value)} />
             </div>
             <div style={{ marginBottom: '1rem' }}>
               <label className="etiquette">Nouveau PIN</label>
-              <input type="password" inputMode="numeric" className="champ" value={nouveauPin} onChange={(e) => setNouveauPin(e.target.value)} />
+              <input type="password" className="champ" value={nouveauPin} onChange={(e) => setNouveauPin(e.target.value)} />
             </div>
             <div style={{ marginBottom: '1.5rem' }}>
               <label className="etiquette">Confirmer le nouveau PIN</label>
-              <input type="password" inputMode="numeric" className="champ" value={confirmationPin} onChange={(e) => setConfirmationPin(e.target.value)} />
+              <input type="password" className="champ" value={confirmationPin} onChange={(e) => setConfirmationPin(e.target.value)} />
             </div>
 
             {erreur && <p className="message-erreur">{erreur}</p>}
