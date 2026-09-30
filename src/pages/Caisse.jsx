@@ -8,6 +8,7 @@ export default function Caisse() {
   const [designations, setDesignations] = useState([]);
   const [designationChoisieId, setDesignationChoisieId] = useState('');
   const [quantite, setQuantite] = useState(1);
+  const [montantLigneLibre, setMontantLigneLibre] = useState('');
 
   const [fidele, setFidele] = useState('FIDELE');
   const [suggestions, setSuggestions] = useState([]);
@@ -61,10 +62,23 @@ export default function Caisse() {
       setDesignationEnAttente(designationChoisie);
       return;
     }
-    ajouterLigneSimple(designationChoisie, Number(quantite) || 1);
+    const q = Number(quantite) || 1;
+    // Montant libre : si le fidèle donne un montant qui ne correspond pas à un
+    // multiple du tarif habituel (ex : 9750 F sur une prestation à 2000 F), la
+    // Caisse tape directement ce montant plutôt que quantité x prix fixe.
+    if (montantLigneLibre.trim()) {
+      const m = Number(montantLigneLibre);
+      if (!Number.isFinite(m) || m <= 0) {
+        setErreur('Le montant personnalisé doit être un nombre positif');
+        return;
+      }
+      ajouterLigneSimple(designationChoisie, q, m);
+      return;
+    }
+    ajouterLigneSimple(designationChoisie, q);
   }
 
-  function ajouterLigneSimple(designation, quantite) {
+  function ajouterLigneSimple(designation, quantite, montantPersonnalise = null) {
     setLignes((l) => [
       ...l,
       {
@@ -73,12 +87,14 @@ export default function Caisse() {
         libelle: designation.libelle,
         type: designation.type,
         quantite,
-        prixUnitaire: Number(designation.prixUnitaire),
+        prixUnitaire: montantPersonnalise !== null ? montantPersonnalise / quantite : Number(designation.prixUnitaire),
+        montantPersonnalise,
         demandeMesse: null,
       },
     ]);
     setDesignationChoisieId('');
     setQuantite(1);
+    setMontantLigneLibre('');
   }
 
   async function gererValidationMesse(donnees) {
@@ -198,6 +214,7 @@ export default function Caisse() {
         lignes: lignes.map((l) => ({
           designationId: l.designationId,
           quantite: l.quantite,
+          montant: l.montantPersonnalise !== null && l.montantPersonnalise !== undefined ? l.montantPersonnalise : undefined,
           demandeMesse: l.demandeMesse
             ? { typeIntention: l.demandeMesse.typeIntention, intention: l.demandeMesse.intention, dates: l.demandeMesse.dates }
             : undefined,
@@ -299,6 +316,21 @@ export default function Caisse() {
                 )}
                 <button className="bouton bouton-primaire" onClick={gererAjoutLigne}>Ajouter</button>
               </div>
+
+              {designationChoisie?.type === 'A' && (
+                <div style={{ marginTop: '0.75rem' }}>
+                  <label className="etiquette">Montant donné par le fidèle (si différent du tarif habituel)</label>
+                  <input
+                    type="number"
+                    min={1}
+                    className="champ"
+                    style={{ maxWidth: 260 }}
+                    value={montantLigneLibre}
+                    onChange={(e) => setMontantLigneLibre(e.target.value)}
+                    placeholder={`Laisser vide pour ${Number(designationChoisie.prixUnitaire).toLocaleString('fr-FR')} F x quantité`}
+                  />
+                </div>
+              )}
             </div>
 
             <div className="carte no-print" style={{ padding: '1.5rem' }}>
@@ -387,6 +419,11 @@ export default function Caisse() {
                         <tr key={l.cle} style={{ borderTop: '1px solid var(--couleur-bordure)' }}>
                           <td style={{ padding: '0.55rem 0' }}>
                             {l.libelle}
+                            {l.montantPersonnalise !== null && l.montantPersonnalise !== undefined && (
+                              <div style={{ fontSize: '0.78rem', color: 'var(--couleur-accent)' }}>
+                                Montant personnalisé
+                              </div>
+                            )}
                             {l.demandeMesse && (
                               <div style={{ fontSize: '0.78rem', color: 'var(--couleur-texte-doux)' }}>
                                 {l.demandeMesse.dates.length === 1
